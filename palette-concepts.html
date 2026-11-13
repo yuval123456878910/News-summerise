@@ -1,0 +1,315 @@
+<title>World Brief Palette Concepts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Young+Serif&family=Karla:wght@400;500;700&family=Sora:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Archivo+Narrow:wght@500;700&family=Archivo:wght@400;500;700&family=Manrope:wght@400;600;800&family=JetBrains+Mono:wght@400;500&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap">
+<style>
+/* Layout: a contact sheet. Five stacked concept boards, each = swatch strip + a full app mockup in that palette. Page chrome stays neutral so the palettes speak. */
+:root{
+  --bg:#f3f3f1; --fg:#1d1e1c; --muted:#696b66; --line:#dcdcd7; --card:#ffffff; --focus:#0077b6;
+  --f-ui:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#151614;--fg:#ecece8;--muted:#9fa19a;--line:#2e2f2c;--card:#1d1e1c;--focus:#90e0ef;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#151614;--fg:#ecece8;--muted:#9fa19a;--line:#2e2f2c;--card:#1d1e1c;--focus:#90e0ef;color-scheme:dark}
+
+body{background:var(--bg);color:var(--fg);font-family:var(--f-ui);line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 64px}
+header.page{display:grid;gap:10px;margin-bottom:28px}
+header.page .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+header.page h1{font-size:clamp(26px,4vw,38px);line-height:1.15;margin:0;font-weight:600;text-wrap:balance;letter-spacing:-.01em}
+header.page p{margin:0;color:var(--muted);max-width:68ch;font-size:15px}
+nav.jump{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+nav.jump a{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border:1px solid var(--line);border-radius:999px;color:var(--fg);text-decoration:none;font-size:13px;background:var(--card)}
+nav.jump a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+nav.jump .mini{display:flex;border-radius:999px;overflow:hidden;height:18px}
+nav.jump .mini i{width:8px;display:block}
+
+section.concept{display:grid;gap:16px;padding-block:36px;border-top:1px solid var(--line)}
+.c-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+.c-title{display:grid;gap:4px;min-width:0}
+.c-title .num{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.c-title h2{margin:0;font-size:24px;font-weight:600;letter-spacing:-.01em}
+.c-title p{margin:0;color:var(--muted);font-size:14px;max-width:62ch}
+.c-title a{color:var(--muted);font-size:12px}
+.swatches{display:flex;border-radius:10px;overflow:hidden;border:1px solid var(--line);min-width:0;flex-wrap:wrap}
+.sw{all:unset;cursor:pointer;width:84px;height:64px;display:flex;align-items:flex-end;padding:6px 8px;box-sizing:border-box;font:500 11px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.02em}
+.sw:focus-visible{outline:2px solid var(--focus);outline-offset:-4px}
+.sw span{background:rgba(255,255,255,.75);color:#111;padding:3px 5px;border-radius:4px}
+
+/* ============ MOCKUP (each concept sets its own --m-* tokens; fixed colors by design) ============ */
+.mock{--r:10px;background:var(--m-bg);color:var(--m-ink);border-radius:14px;overflow:hidden;font-family:var(--m-fb);font-size:14px;box-shadow:0 1px 0 var(--line),0 12px 40px -18px rgba(0,0,0,.35);display:grid;grid-template-columns:220px minmax(0,1fr) 320px;grid-template-rows:auto 1fr;grid-template-areas:"top top top" "side main chat";min-height:560px}
+.m-top{grid-area:top;display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;padding:12px 18px;background:var(--m-top);color:var(--m-top-ink);border-bottom:1px solid var(--m-line)}
+.m-brand{font-family:var(--m-fd);font-size:19px;font-weight:var(--m-fdw,700);letter-spacing:var(--m-fdls,0);margin-right:auto;display:flex;align-items:center;gap:8px}
+.m-brand .dot{width:10px;height:10px;border-radius:50%;background:var(--m-accent)}
+.m-prov{display:flex;gap:4px;padding:3px;border-radius:999px;background:var(--m-chipbg);flex-wrap:wrap}
+.m-prov button{all:unset;cursor:pointer;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:600;color:var(--m-top-ink);opacity:.75}
+.m-prov button[aria-pressed="true"]{background:var(--m-accent);color:var(--m-accent-ink);opacity:1}
+.m-key{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;border:1px solid var(--m-line);font:12px "IBM Plex Mono",ui-monospace,monospace;color:var(--m-top-ink);background:var(--m-keybg)}
+.m-key b{font-weight:500;opacity:.7}
+.m-key .ok{width:7px;height:7px;border-radius:50%;background:var(--m-good)}
+
+.m-side{grid-area:side;background:var(--m-side);color:var(--m-side-ink);padding:16px 14px;display:flex;flex-direction:column;gap:12px;border-right:1px solid var(--m-line)}
+.m-label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:700;opacity:.7}
+.m-add{display:flex;align-items:center;gap:8px;border:1px dashed currentColor;border-radius:var(--r);padding:8px 10px;font-size:13px;opacity:.85}
+.m-countries{display:flex;flex-direction:column;gap:4px}
+.m-ct{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);font-size:14px}
+.m-ct .iso{font:600 11px "IBM Plex Mono",ui-monospace,monospace;width:28px;height:20px;display:grid;place-items:center;border-radius:5px;background:var(--m-chipbg);color:inherit}
+.m-ct .n{margin-left:auto;font-size:12px;opacity:.7;font-variant-numeric:tabular-nums}
+.m-ct.on{background:var(--m-sel);color:var(--m-sel-ink)}
+.m-ct.on .iso{background:var(--m-accent);color:var(--m-accent-ink)}
+.m-range{margin-top:auto;display:grid;gap:6px;font-size:12px}
+.m-range .seg{display:flex;border-radius:8px;overflow:hidden;border:1px solid var(--m-line)}
+.m-range .seg span{flex:1;text-align:center;padding:5px 0}
+.m-range .seg .on{background:var(--m-accent);color:var(--m-accent-ink);font-weight:600}
+
+.m-main{grid-area:main;padding:20px 22px;display:flex;flex-direction:column;gap:16px;min-width:0;background:var(--m-bg)}
+.m-mhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.m-mhead h3{margin:0;font-family:var(--m-fd);font-weight:var(--m-fdw,700);letter-spacing:var(--m-fdls,0);font-size:26px;line-height:1.1}
+.m-mhead small{font-size:12px;color:var(--m-muted)}
+.m-sample{font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:2px 6px;border-radius:4px;border:1px solid var(--m-line);color:var(--m-muted)}
+.m-tldr{background:var(--m-hl);color:var(--m-hl-ink);padding:14px 16px;border-radius:var(--r);font-size:14.5px;line-height:1.55}
+.m-tldr strong{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.09em;margin-bottom:4px;opacity:.8}
+.m-stories{display:grid;gap:10px}
+.m-story{background:var(--m-card);border:1px solid var(--m-line);border-radius:var(--r);padding:12px 14px;display:grid;gap:4px}
+.m-story .tag{justify-self:start;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--m-tag);color:var(--m-tag-ink);letter-spacing:.02em}
+.m-story h4{margin:0;font-size:15px;line-height:1.35;font-weight:700;font-family:var(--m-fh,var(--m-fb))}
+.m-story p{margin:0;font-size:13px;color:var(--m-muted);line-height:1.5}
+.m-story .src{font:11px "IBM Plex Mono",ui-monospace,monospace;color:var(--m-muted)}
+
+.m-chat{grid-area:chat;background:var(--m-chatbg);color:var(--m-chat-ink);border-left:1px solid var(--m-line);display:flex;flex-direction:column;min-width:0}
+.m-chat .h{padding:14px 16px;border-bottom:1px solid var(--m-line);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.m-chat .h b{font-family:var(--m-fd);font-weight:var(--m-fdw,700);font-size:16px}
+.m-chat .h span{font-size:11px;opacity:.75}
+.m-msgs{flex:1;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.bub{max-width:88%;padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.5}
+.bub.u{align-self:flex-end;background:var(--m-user);color:var(--m-user-ink);border-bottom-right-radius:4px}
+.bub.a{align-self:flex-start;background:var(--m-ai);color:var(--m-ai-ink);border-bottom-left-radius:4px}
+.bub.a .cite{display:inline-block;font:10px "IBM Plex Mono",ui-monospace,monospace;padding:1px 5px;border-radius:4px;background:var(--m-chipbg);margin-left:2px}
+.m-sugg{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px}
+.m-sugg span{font-size:11.5px;padding:4px 9px;border-radius:999px;border:1px solid var(--m-line)}
+.m-input{margin:0 12px 12px;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 12px;border-radius:12px;background:var(--m-inbg);border:1px solid var(--m-line);color:var(--m-muted);font-size:13px}
+.m-input span{flex:1}
+.m-input i{font-style:normal;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--m-accent);color:var(--m-accent-ink);font-weight:700}
+
+/* ---- Concept-specific layout twists ---- */
+/* 2: chat-forward, chat in the middle */
+.lay-chatfirst{grid-template-columns:200px minmax(0,1fr) 340px;grid-template-areas:"top top top" "side chat main"}
+.lay-chatfirst .m-chat{border-left:0;border-right:1px solid var(--m-line)}
+/* 4: dense terminal desk */
+.lay-dense{grid-template-columns:200px minmax(0,1fr) 300px}
+.lay-dense .m-story{grid-template-columns:auto 1fr;column-gap:12px;border-width:0 0 1px 0;border-radius:0;background:transparent;padding:8px 0}
+.lay-dense .m-story .tag{grid-row:span 3;align-self:start}
+/* 5: atlas, color-coded stories */
+.lay-atlas .m-story{border-left:5px solid var(--m-stripe,var(--m-accent))}
+.lay-atlas .m-story:nth-child(2){--m-stripe:#e9c46a}
+.lay-atlas .m-story:nth-child(3){--m-stripe:#e76f51}
+
+@media (max-width:980px){
+  .mock,.lay-chatfirst,.lay-dense{grid-template-columns:190px minmax(0,1fr);grid-template-areas:"top top" "side main" "chat chat"}
+  .m-chat,.lay-chatfirst .m-chat{border-left:0;border-right:0;border-top:1px solid var(--m-line)}
+}
+@media (max-width:640px){
+  .mock,.lay-chatfirst,.lay-dense{grid-template-columns:minmax(0,1fr);grid-template-areas:"top" "side" "main" "chat"}
+  .m-side{border-right:0;border-bottom:1px solid var(--m-line)}
+  .m-countries{flex-direction:row;flex-wrap:wrap}
+  .m-ct .n{display:none}
+  .m-range{margin-top:0}
+  .sw{width:20%;min-width:56px}
+  .swatches{width:100%}
+}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+footer.note{color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:20px}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <span class="eyebrow">Design exploration · News summary chatbot</span>
+    <h1>Five color directions for World Brief</h1>
+    <p>Same app, five palettes. Each mockup shows the full flow: pick countries on the left, read the AI summary of their news, ask follow-up questions in the chat, and choose the AI provider (OpenRouter, Claude, ChatGPT or Gemini) with your own API key at the top. Click any swatch to copy its hex code. Headlines are sample content.</p>
+    <nav class="jump" id="jump" aria-label="Jump to concept"></nav>
+  </header>
+  <main id="concepts"></main>
+  <footer class="note">Concepts 1–3 use the palettes you linked. Concepts 4 and 5 are my picks: a dark "night desk" navy for people who read news late, and a five-color atlas palette that color-codes stories by topic.</footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const concepts = [
+  {
+    id:"sage", name:"Morning Paper", src:"https://coolors.co/palette/ccd5ae-e9edc9-fefae0-faedcd-d4a373",
+    pal:["ccd5ae","e9edc9","fefae0","faedcd","d4a373"],
+    blurb:"Calm and readable, like a slow breakfast with the news. Sage for navigation, cream for reading, tan as the one action color.",
+    vars:{"--m-bg":"#fefae0","--m-ink":"#3a3a2c","--m-muted":"#6f6b55","--m-line":"#e2dcc0","--m-top":"#fefae0","--m-top-ink":"#3a3a2c","--m-chipbg":"#e9edc9","--m-keybg":"#faedcd",
+      "--m-accent":"#d4a373","--m-accent-ink":"#2e2414","--m-good":"#7c8a4e","--m-side":"#ccd5ae","--m-side-ink":"#33361f","--m-sel":"#e9edc9","--m-sel-ink":"#2b2e19",
+      "--m-hl":"#faedcd","--m-hl-ink":"#4a3a22","--m-card":"#fffdf0","--m-tag":"#e9edc9","--m-tag-ink":"#47502a","--m-chatbg":"#faedcd","--m-chat-ink":"#3a3a2c",
+      "--m-user":"#d4a373","--m-user-ink":"#2e2414","--m-ai":"#fefae0","--m-ai-ink":"#3a3a2c","--m-inbg":"#fefae0",
+      "--m-fd":"'Young Serif',Georgia,serif","--m-fdw":"400","--m-fb":"'Karla',system-ui,sans-serif","--r":"12px"},
+    layout:"", provider:"Claude", key:"sk-ant-••••••3f9a",
+    countries:[["JP","Japan",14,true],["KE","Kenya",9,true],["PT","Portugal",7,false],["CA","Canada",11,false]],
+    focus:"Japan & Kenya"
+  },
+  {
+    id:"ocean", name:"Deep Current", src:"https://coolors.co/palette/03045e-0077b6-00b4d8-90e0ef-caf0f8",
+    pal:["03045e","0077b6","00b4d8","90e0ef","caf0f8"],
+    blurb:"Chat-first. The conversation sits in the center, the summary becomes a side reference. Deep navy frame, bright cyan for anything live.",
+    vars:{"--m-bg":"#f2fbfe","--m-ink":"#03045e","--m-muted":"#3a5a80","--m-line":"#bfe6f1","--m-top":"#03045e","--m-top-ink":"#caf0f8","--m-chipbg":"rgba(144,224,239,.18)","--m-keybg":"rgba(202,240,248,.08)",
+      "--m-accent":"#00b4d8","--m-accent-ink":"#03045e","--m-good":"#90e0ef","--m-side":"#03045e","--m-side-ink":"#caf0f8","--m-sel":"#0077b6","--m-sel-ink":"#ffffff",
+      "--m-hl":"#caf0f8","--m-hl-ink":"#03045e","--m-card":"#ffffff","--m-tag":"#caf0f8","--m-tag-ink":"#0077b6","--m-chatbg":"#ffffff","--m-chat-ink":"#03045e",
+      "--m-user":"#0077b6","--m-user-ink":"#ffffff","--m-ai":"#caf0f8","--m-ai-ink":"#03045e","--m-inbg":"#f2fbfe",
+      "--m-fd":"'Sora',system-ui,sans-serif","--m-fdw":"700","--m-fb":"'Sora',system-ui,sans-serif","--r":"14px"},
+    layout:"lay-chatfirst", provider:"OpenRouter", key:"sk-or-v1-••••••c21e",
+    countries:[["BR","Brazil",18,true],["AR","Argentina",8,false],["CL","Chile",6,false],["MX","Mexico",13,false]],
+    focus:"Brazil"
+  },
+  {
+    id:"olive", name:"Field Dispatch", src:"https://coolors.co/palette/606c38-283618-fefae0-dda15e-bc6c25",
+    pal:["606c38","283618","fefae0","dda15e","bc6c25"],
+    blurb:"A correspondent's notebook. Dark olive frame with condensed headlines, copper for actions and amber for highlights.",
+    vars:{"--m-bg":"#fefae0","--m-ink":"#283618","--m-muted":"#5d6248","--m-line":"#e4dcb8","--m-top":"#283618","--m-top-ink":"#fefae0","--m-chipbg":"rgba(254,250,224,.14)","--m-keybg":"rgba(254,250,224,.06)",
+      "--m-accent":"#bc6c25","--m-accent-ink":"#fefae0","--m-good":"#dda15e","--m-side":"#606c38","--m-side-ink":"#fefae0","--m-sel":"#283618","--m-sel-ink":"#fefae0",
+      "--m-hl":"#dda15e","--m-hl-ink":"#283618","--m-card":"#fffdf0","--m-tag":"#283618","--m-tag-ink":"#fefae0","--m-chatbg":"#f5efcf","--m-chat-ink":"#283618",
+      "--m-user":"#606c38","--m-user-ink":"#fefae0","--m-ai":"#fefae0","--m-ai-ink":"#283618","--m-inbg":"#fefae0",
+      "--m-fd":"'Archivo Narrow','Arial Narrow',sans-serif","--m-fdw":"700","--m-fdls":".01em","--m-fb":"'Archivo',system-ui,sans-serif","--m-fh":"'Archivo Narrow','Arial Narrow',sans-serif","--r":"6px"},
+    layout:"", provider:"ChatGPT", key:"sk-proj-••••••8d40",
+    countries:[["UA","Ukraine",22,true],["PL","Poland",10,true],["DE","Germany",16,false],["TR","Türkiye",12,false]],
+    focus:"Ukraine & Poland"
+  },
+  {
+    id:"night", name:"Night Desk", src:"https://coolors.co/palette/0d1b2a-1b263b-415a77-778da9-e0e1dd",
+    pal:["0d1b2a","1b263b","415a77","778da9","e0e1dd"],
+    blurb:"My pick. A dark, dense wire-room view for late reading. Compact story rows, monospace sources, slate-blue accents that stay easy on the eyes.",
+    vars:{"--m-bg":"#0d1b2a","--m-ink":"#e0e1dd","--m-muted":"#9aabc2","--m-line":"#24324a","--m-top":"#0d1b2a","--m-top-ink":"#e0e1dd","--m-chipbg":"#1b263b","--m-keybg":"#1b263b",
+      "--m-accent":"#778da9","--m-accent-ink":"#0d1b2a","--m-good":"#9fd3a8","--m-side":"#1b263b","--m-side-ink":"#e0e1dd","--m-sel":"#415a77","--m-sel-ink":"#ffffff",
+      "--m-hl":"#1b263b","--m-hl-ink":"#e0e1dd","--m-card":"#0d1b2a","--m-tag":"#415a77","--m-tag-ink":"#e0e1dd","--m-chatbg":"#1b263b","--m-chat-ink":"#e0e1dd",
+      "--m-user":"#415a77","--m-user-ink":"#ffffff","--m-ai":"#0d1b2a","--m-ai-ink":"#e0e1dd","--m-inbg":"#0d1b2a",
+      "--m-fd":"'Manrope',system-ui,sans-serif","--m-fdw":"800","--m-fdls":"-.01em","--m-fb":"'Manrope',system-ui,sans-serif","--r":"8px"},
+    layout:"lay-dense", provider:"Gemini", key:"AIza••••••••Xk2Q",
+    countries:[["IN","India",24,true],["PK","Pakistan",11,false],["BD","Bangladesh",7,false],["LK","Sri Lanka",4,false]],
+    focus:"India"
+  },
+  {
+    id:"atlas", name:"Atlas", src:"https://coolors.co/palette/264653-2a9d8f-e9c46a-f4a261-e76f51",
+    pal:["264653","2a9d8f","e9c46a","f4a261","e76f51"],
+    blurb:"My pick. Friendly and colorful, each topic gets its own color (politics, economy, climate). Good if you want the app to feel less heavy than the news itself.",
+    vars:{"--m-bg":"#fbf8f1","--m-ink":"#264653","--m-muted":"#557079","--m-line":"#e6e0d0","--m-top":"#264653","--m-top-ink":"#fbf8f1","--m-chipbg":"rgba(251,248,241,.14)","--m-keybg":"rgba(251,248,241,.06)",
+      "--m-accent":"#e76f51","--m-accent-ink":"#ffffff","--m-good":"#2a9d8f","--m-side":"#fbf8f1","--m-side-ink":"#264653","--m-sel":"#2a9d8f","--m-sel-ink":"#ffffff",
+      "--m-hl":"#e9c46a","--m-hl-ink":"#264653","--m-card":"#ffffff","--m-tag":"#f4a261","--m-tag-ink":"#264653","--m-chatbg":"#ffffff","--m-chat-ink":"#264653",
+      "--m-user":"#264653","--m-user-ink":"#fbf8f1","--m-ai":"#eef6f4","--m-ai-ink":"#264653","--m-inbg":"#fbf8f1",
+      "--m-fd":"'Bricolage Grotesque',system-ui,sans-serif","--m-fdw":"800","--m-fdls":"-.02em","--m-fb":"'Bricolage Grotesque',system-ui,sans-serif","--r":"16px"},
+    layout:"lay-atlas", provider:"Claude", key:"sk-ant-••••••77b0",
+    countries:[["FR","France",15,true],["ES","Spain",9,false],["IT","Italy",12,true],["GR","Greece",5,false]],
+    focus:"France & Italy"
+  }
+];
+
+const stories = {
+  "Japan & Kenya":[["Economy","Central bank holds rates, signals review next quarter","Officials point to wage growth and a weaker yen as the main factors to watch.","4 sources · 2h ago"],["Tech","Nairobi startups raise record seed funding","Fintech and agritech lead, with most rounds backed by regional investors.","3 sources · 5h ago"],["Climate","Early rains raise flood warnings in western Kenya","Authorities pre-position supplies in three counties.","5 sources · 7h ago"]],
+  "Brazil":[["Politics","Congress debates new tax reform phase","The vote is expected next week after committee changes to fuel levies.","6 sources · 1h ago"],["Climate","Amazon deforestation alerts drop for third month","Satellite data shows declines in Pará and Mato Grosso.","4 sources · 4h ago"],["Sport","Brasileirão title race tightens","Two points separate the top three with five rounds left.","2 sources · 6h ago"]],
+  "Ukraine & Poland":[["Security","Talks on grain corridor resume in Warsaw","Both sides report progress on inspection rules at the border.","7 sources · 1h ago"],["Energy","Poland expands grid link capacity","New interconnector to carry more power east this winter.","3 sources · 3h ago"],["Society","Kyiv reopens school year with hybrid model","Districts publish shelter-readiness checklists.","4 sources · 8h ago"]],
+  "India":[["Economy","Monsoon finish lifts rural spending outlook","Retail chains report stronger festive-season bookings.","5 sources · 2h ago"],["Tech","Payments network crosses new daily record","UPI volumes rise as more merchants accept QR payments.","4 sources · 3h ago"],["Politics","State elections enter final phase","Turnout in the first two phases exceeded past cycles.","8 sources · 6h ago"]],
+  "France & Italy":[["Politics","Paris budget bill heads to Senate","Lawmakers amend pension and energy provisions.","6 sources · 2h ago"],["Economy","Italian exports to Asia rise","Machinery and food products lead the quarterly gain.","3 sources · 4h ago"],["Climate","Alpine glacier survey shows faster melt","Researchers recommend new limits on summer access routes.","4 sources · 9h ago"]]
+};
+
+const tldr = {
+  "Japan & Kenya":"Japan's central bank is in wait-and-see mode on rates, while Kenya's tech scene had a strong week for funding and the west of the country prepares for flooding.",
+  "Brazil":"Brazil's attention is on the next phase of tax reform in Congress. Deforestation alerts keep falling, and the football league is heading for a close finish.",
+  "Ukraine & Poland":"Border cooperation is the main thread: grain corridor talks resumed and Poland is adding power capacity toward Ukraine ahead of winter.",
+  "India":"A good monsoon is feeding optimism about rural spending. Digital payments hit a new high while state elections reach their final phase.",
+  "France & Italy":"France's budget fight moves to the Senate. Italy's exporters had a strong quarter, and a new survey shows Alpine glaciers melting faster."
+};
+
+const chats = {
+  "Japan & Kenya":["Why does a weak yen matter for the rate decision?","A weaker yen raises import prices, which pushes inflation up. The bank wants to see if wages keep pace before raising rates.","Will rates go up?"],
+  "Brazil":["What changes in the fuel tax part?","The committee version lowers the proposed levy on diesel and phases it in over three years instead of one.","Who opposes it?"],
+  "Ukraine & Poland":["What was the grain dispute about?","Polish farmers said cheaper Ukrainian grain hurt local prices. The new inspection rules aim to let transit through without flooding the local market.","Timeline for a deal?"],
+  "India":["Summarize only the economy news in 2 lines","Good rains lifted rural demand and retail bookings. Digital payments set a daily record as QR adoption grows.","Compare to last year"],
+  "France & Italy":["Explain the French budget issue simply","The government needs to cut the deficit. The fight is over whether to do it with pension changes, energy taxes, or spending cuts.","What happens next?"]
+};
+
+const provs = ["OpenRouter","Claude","ChatGPT","Gemini"];
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function textOn(hex){const n=parseInt(hex,16),r=n>>16,g=n>>8&255,b=n&255;return (r*299+g*587+b*114)/1000>140?"#111":"#fff";}
+
+function render(c,i){
+  const style = Object.entries(c.vars).map(([k,v])=>`${k}:${v}`).join(";");
+  const st = stories[c.focus], ch = chats[c.focus];
+  const sec = document.createElement("section");
+  sec.className="concept"; sec.id=c.id;
+  sec.innerHTML = `
+  <div class="c-head">
+    <div class="c-title">
+      <span class="num">Concept ${i+1} of 5${i>=3?" · my pick":""}</span>
+      <h2>${esc(c.name)}</h2>
+      <p>${esc(c.blurb)}</p>
+      <a href="${c.src}" target="_blank" rel="noopener">View palette on Coolors</a>
+    </div>
+    <div class="swatches" role="group" aria-label="${esc(c.name)} palette">
+      ${c.pal.map(h=>`<button class="sw" style="background:#${h}" data-hex="#${h.toUpperCase()}" aria-label="Copy #${h.toUpperCase()}"><span>#${h.toUpperCase()}</span></button>`).join("")}
+    </div>
+  </div>
+  <div class="mock ${c.layout}" style="${style}">
+    <div class="m-top">
+      <div class="m-brand"><span class="dot"></span>World Brief</div>
+      <div class="m-prov" role="group" aria-label="AI provider">
+        ${provs.map(p=>`<button aria-pressed="${p===c.provider}">${p}</button>`).join("")}
+      </div>
+      <div class="m-key"><span class="ok"></span><b>API key</b> ${esc(c.key)}</div>
+    </div>
+    <aside class="m-side">
+      <span class="m-label">Your countries</span>
+      <div class="m-add">+ Add a country</div>
+      <div class="m-countries">
+        ${c.countries.map(([iso,n,k,on])=>`<div class="m-ct${on?" on":""}"><span class="iso">${iso}</span>${n}<span class="n">${k}</span></div>`).join("")}
+      </div>
+      <div class="m-range">
+        <span class="m-label">Time range</span>
+        <div class="seg"><span>6h</span><span class="on">24h</span><span>7d</span></div>
+      </div>
+    </aside>
+    <div class="m-main">
+      <div class="m-mhead"><h3>${esc(c.focus)}</h3><small>Last 24 hours · ${st.length} topics</small><span class="m-sample">Sample content</span></div>
+      <div class="m-tldr"><strong>Summary</strong>${esc(tldr[c.focus])}</div>
+      <div class="m-stories">
+        ${st.map(([t,h,p,s])=>`<article class="m-story"><span class="tag">${t}</span><h4>${esc(h)}</h4><p>${esc(p)}</p><span class="src">${s}</span></article>`).join("")}
+      </div>
+    </div>
+    <div class="m-chat">
+      <div class="h"><b>Ask about the news</b><span>${c.provider}</span></div>
+      <div class="m-msgs">
+        <div class="bub u">${esc(ch[0])}</div>
+        <div class="bub a">${esc(ch[1])} <span class="cite">2 sources</span></div>
+      </div>
+      <div class="m-sugg"><span>${esc(ch[2])}</span><span>Translate summary</span></div>
+      <div class="m-input"><span>Ask a question…</span><i>↑</i></div>
+    </div>
+  </div>`;
+  return sec;
+}
+
+const main = document.getElementById("concepts"), jump=document.getElementById("jump");
+concepts.forEach((c,i)=>{
+  main.appendChild(render(c,i));
+  const a=document.createElement("a"); a.href="#"+c.id;
+  a.innerHTML=`<span class="mini">${c.pal.map(h=>`<i style="background:#${h}"></i>`).join("")}</span>${esc(c.name)}`;
+  jump.appendChild(a);
+});
+document.querySelectorAll(".sw").forEach(b=>{ b.querySelector("span").style.color="#111"; });
+
+const toast=document.getElementById("toast"); let tt;
+function show(msg){toast.textContent=msg;toast.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>toast.classList.remove("show"),1400);}
+document.addEventListener("click",e=>{
+  const b=e.target.closest(".sw"); if(!b) return;
+  const hex=b.dataset.hex;
+  try{navigator.clipboard.writeText(hex).then(()=>show("Copied "+hex),()=>show(hex));}catch(_){show(hex);}
+});
+// mock provider switch (visual only)
+document.addEventListener("click",e=>{
+  const b=e.target.closest(".m-prov button"); if(!b) return;
+  b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  const h=b.closest(".mock").querySelector(".m-chat .h span"); if(h) h.textContent=b.textContent;
+});
+</script>

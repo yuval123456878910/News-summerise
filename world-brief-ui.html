@@ -1,0 +1,447 @@
+<title>World Brief UI Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Karla:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: review sheet. Reviewer bar on top, the live app prototype in a frame (desktop or phone width), numbered review notes beside it.
+   Single light look on purpose: this is the Morning Paper palette, colors set explicitly. */
+:root{
+  color-scheme:light;
+  --sage:#ccd5ae; --mist:#e9edc9; --cream:#fefae0; --linen:#faedcd; --tan:#d4a373;
+  --ink:#33361f; --ink-2:#5f5c47; --line:#e2dcc0; --tan-deep:#9a6631; --good:#6d7d3c; --page:#f2edd3; --white:#fffdf2;
+  --fd:"Young Serif",Georgia,serif; --fb:"Karla",system-ui,-apple-system,"Segoe UI",sans-serif; --fm:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+body{background:var(--page);color:var(--ink);font-family:var(--fb);line-height:1.5}
+.wrap{max-width:1320px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 56px;display:grid;gap:20px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--tan-deep);outline-offset:2px}
+
+.intro{display:grid;gap:6px}
+.intro .eyebrow{font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--ink-2)}
+.intro h1{margin:0;font-family:var(--fd);font-weight:400;font-size:clamp(26px,4vw,36px);line-height:1.15;text-wrap:balance}
+.intro p{margin:0;max-width:72ch;color:var(--ink-2);font-size:15px}
+
+.rbar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:10px 14px;background:var(--white);border:1px solid var(--line);border-radius:12px}
+.rbar .lbl{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.rgroup{display:flex;align-items:center;gap:8px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;background:var(--cream)}
+.seg button{border:0;background:transparent;padding:5px 12px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--tan);color:#2e2414}
+
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+@media (max-width:1100px){.stage{grid-template-columns:minmax(0,1fr)}}
+.frame{display:flex;justify-content:center;min-width:0}
+.frame.phone .app{max-width:390px}
+
+/* Review notes */
+.notes{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px;position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}
+@media (max-width:1100px){.notes{position:static}}
+.notes h2{margin:0;font-family:var(--fd);font-weight:400;font-size:20px}
+.notes ol{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.notes li{display:grid;grid-template-columns:24px 1fr;gap:10px;font-size:13.5px;line-height:1.45}
+.notes li b{display:block;font-size:14px}
+.notes li span{color:var(--ink-2)}
+.notes .n{width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--cream);display:grid;place-items:center;font:700 12px var(--fb)}
+.notes .tip{font-size:13px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:10px;margin:0}
+
+/* =================== THE APP =================== */
+.app{container-type:inline-size;width:100%;background:var(--cream);color:var(--ink);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 18px 50px -28px rgba(51,54,31,.45);font-family:var(--fb);font-size:14px;position:relative}
+.app[lang="he"]{--fd:"Frank Ruhl Libre","David",serif;--fb:"Assistant","Arial Hebrew",Arial,sans-serif}
+.pin{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--ink);color:var(--cream);font:700 11px "Karla",sans-serif;flex:none;vertical-align:middle;box-shadow:0 0 0 3px rgba(212,163,115,.55)}
+
+.grid{display:grid;grid-template-columns:230px minmax(0,1fr) 340px;grid-template-rows:auto 1fr;grid-template-areas:"top top top" "side main chat";min-height:680px}
+.top{grid-area:top;display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--line);background:var(--cream)}
+.brand{font-family:var(--fd);font-size:21px;display:flex;align-items:center;gap:9px;margin-inline-end:auto}
+.brand .mark{width:26px;height:26px;border-radius:8px;background:var(--sage);display:grid;place-items:center}
+.brand .mark i{width:10px;height:10px;border-radius:50%;background:var(--tan);display:block}
+.lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;background:var(--white)}
+.lang button{border:0;background:transparent;cursor:pointer;padding:4px 11px;border-radius:999px;font-weight:700;font-size:13px;color:var(--ink-2);font-family:"Karla","Assistant",sans-serif}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--cream)}
+.prov{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--linen);border-radius:999px;padding:5px 12px 5px 8px;cursor:pointer;font-weight:600;font-size:13px}
+.app[dir="rtl"] .prov{padding:5px 8px 5px 12px}
+.prov .dot{width:8px;height:8px;border-radius:50%;background:var(--good)}
+.prov .dot.off{background:var(--tan)}
+.prov small{font-weight:400;color:var(--ink-2)}
+
+.side{grid-area:side;background:var(--sage);padding:18px 14px;display:flex;flex-direction:column;gap:12px;border-inline-end:1px solid #bcc79a}
+.label{font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:#4a5030;display:flex;align-items:center;gap:8px}
+.app[lang="he"] .label{letter-spacing:0;font-size:12.5px}
+.search{display:flex;align-items:center;gap:8px;background:var(--cream);border-radius:10px;padding:8px 10px;color:var(--ink-2);font-size:13px;border:1px solid #bcc79a}
+.search svg{flex:none}
+.clist{display:flex;flex-direction:column;gap:3px}
+.ct{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;border:0;background:transparent;cursor:pointer;text-align:start;font-size:14px;color:#2b2e19;width:100%}
+.ct:hover{background:rgba(254,250,224,.45)}
+.ct .iso{font:600 11px var(--fm);width:30px;height:21px;border-radius:5px;display:grid;place-items:center;background:rgba(254,250,224,.6)}
+.ct .cnt{margin-inline-start:auto;font-size:12px;color:#4a5030;font-variant-numeric:tabular-nums}
+.ct .chk{width:16px;height:16px;border-radius:5px;border:1.5px solid #6f7a48;display:grid;place-items:center;flex:none}
+.ct[aria-pressed="true"]{background:var(--mist)}
+.ct[aria-pressed="true"] .iso{background:var(--tan);color:#2e2414}
+.ct[aria-pressed="true"] .chk{background:var(--ink);border-color:var(--ink)}
+.ct[aria-pressed="true"] .chk::after{content:"";width:7px;height:4px;border:2px solid var(--cream);border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.side .foot{margin-top:auto;display:grid;gap:6px}
+.refresh{border:1px solid #6f7a48;background:transparent;border-radius:10px;padding:8px 10px;cursor:pointer;font-weight:700;font-size:13px;color:#2b2e19;display:flex;align-items:center;justify-content:center;gap:8px}
+.side .upd{font-size:12px;color:#4a5030;text-align:center}
+
+.main{grid-area:main;padding:22px 24px 26px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.mhead{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;justify-content:space-between}
+.mhead .t{display:grid;gap:2px;min-width:0}
+.mhead h2{margin:0;font-family:var(--fd);font-weight:400;font-size:30px;line-height:1.1;text-wrap:balance}
+.app[lang="he"] .mhead h2{font-weight:700}
+.mhead .sub{font-size:13px;color:var(--ink-2);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--ink-2)}
+.range{display:inline-flex;border-radius:12px;background:var(--mist);padding:3px;gap:2px;align-items:center}
+.range button{border:0;background:transparent;cursor:pointer;padding:7px 14px;border-radius:9px;font-weight:700;font-size:13px;color:#4a5030}
+.range button[aria-pressed="true"]{background:var(--cream);color:var(--ink);box-shadow:0 1px 3px rgba(51,54,31,.18)}
+
+.sum{background:var(--linen);border-radius:14px;padding:16px 18px;display:grid;gap:8px}
+.sum .h{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap}
+.sum .h b{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#7a5a32;display:flex;gap:8px;align-items:center}
+.app[lang="he"] .sum .h b{letter-spacing:0;font-size:13px}
+.sum p{margin:0;font-size:15.5px;line-height:1.6;color:#3d3220;max-width:70ch}
+.sum .by{font-size:12px;color:#7a5a32}
+
+.group{display:grid;gap:10px}
+.gh{display:flex;align-items:center;gap:10px;font-family:var(--fd);font-size:17px}
+.gh::after{content:"";flex:1;height:1px;background:var(--line)}
+.stories{display:grid;gap:10px}
+.story{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:13px 15px;display:grid;gap:5px}
+.story .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--ink-2)}
+.story .tag{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--mist);color:#47502a}
+.story .cc{font:600 10.5px var(--fm);padding:1px 5px;border-radius:4px;background:var(--linen);color:#7a5a32}
+.story h3{margin:0;font-size:16px;line-height:1.35;font-weight:700}
+.story p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.55}
+.story .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.chip{border:1px solid var(--line);background:var(--cream);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink);display:inline-flex;gap:6px;align-items:center}
+.chip:hover{border-color:var(--tan)}
+
+.timeline{display:grid;border:1px solid var(--line);border-radius:12px;background:var(--white);overflow:hidden}
+.day{display:grid;grid-template-columns:86px 1fr;gap:12px;padding:10px 14px;border-top:1px solid var(--line);align-items:baseline}
+.day:first-child{border-top:0}
+.day .d{font:500 12px var(--fm);color:#7a5a32;font-variant-numeric:tabular-nums}
+.app[lang="he"] .day .d{font-family:var(--fb);font-weight:700;font-size:13px}
+.day .l{font-size:13.5px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.day .l .cc{font:600 10.5px var(--fm);padding:1px 5px;border-radius:4px;background:var(--mist);color:#47502a}
+.day.today{background:var(--linen)}
+
+.chat{grid-area:chat;background:var(--linen);border-inline-start:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+.chat .h{padding:14px 16px;border-bottom:1px solid #eedcb6;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.chat .h b{font-family:var(--fd);font-weight:400;font-size:17px;display:flex;gap:8px;align-items:center}
+.app[lang="he"] .chat .h b{font-weight:700}
+.chat .h span{font-size:12px;color:#7a5a32}
+.msgs{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px}
+.bub{max-width:88%;padding:10px 13px;border-radius:16px;font-size:13.5px;line-height:1.55}
+.bub.u{align-self:flex-end;background:var(--tan);color:#2e2414;border-end-end-radius:5px}
+.bub.a{align-self:flex-start;background:var(--cream);border:1px solid #eedcb6;border-end-start-radius:5px;display:grid;gap:6px}
+.bub.a .ftr{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11.5px;color:var(--ink-2)}
+.bub.a .src{font:500 10.5px var(--fm);padding:1px 6px;border-radius:4px;background:var(--mist);color:#47502a}
+.bub.a .mini{border:0;background:transparent;cursor:pointer;color:#7a5a32;font-weight:700;font-size:11.5px;padding:0}
+.bub .tr{font-size:11px;font-weight:700;color:#7a5a32;letter-spacing:.02em}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px}
+.inbox{margin:0 12px 12px;display:flex;align-items:flex-end;gap:8px;padding:8px;padding-inline-start:12px;border-radius:14px;background:var(--cream);border:1px solid #e6d3a8}
+.inbox .ph{flex:1;color:var(--ink-2);font-size:13.5px;padding-block:6px}
+.send{width:34px;height:34px;border-radius:10px;border:0;background:var(--ink);color:var(--cream);display:grid;place-items:center;cursor:pointer;flex:none}
+.app[dir="rtl"] .send svg{transform:scaleX(-1)}
+
+.tabs{display:none}
+
+/* ----- Phone (container) ----- */
+@container (max-width:760px){
+  .grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"top" "side" "main" "chat";min-height:0}
+  .top{padding:10px 14px}
+  .brand{font-size:18px}
+  .prov small{display:none}
+  .side{padding:12px 14px;border-inline-end:0;gap:8px}
+  .side .search,.side .foot{display:none}
+  .clist{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:2px}
+  .ct{width:auto;flex:none;padding:6px 10px;border-radius:999px;background:rgba(254,250,224,.45)}
+  .ct .cnt{display:none}
+  .main{padding:16px 14px 20px}
+  .mhead h2{font-size:24px}
+  .range{width:100%}
+  .range button{flex:1}
+  .chat{border-inline-start:0;border-top:1px solid var(--line);min-height:480px}
+  .app[data-tab="brief"] .chat{display:none}
+  .app[data-tab="ask"] .main{display:none}
+  .tabs{display:flex;position:sticky;bottom:0;background:var(--cream);border-top:1px solid var(--line)}
+  .tabs button{flex:1;border:0;background:transparent;padding:10px 0 12px;font-weight:700;font-size:13px;color:var(--ink-2);cursor:pointer;display:grid;justify-items:center;gap:3px}
+  .tabs button[aria-pressed="true"]{color:var(--ink)}
+  .tabs button[aria-pressed="true"] i{background:var(--tan)}
+  .tabs i{width:28px;height:4px;border-radius:2px;background:transparent;display:block}
+  .modal{inset:auto 0 0 0;max-height:92%;border-radius:18px 18px 0 0;width:auto}
+  .pcards{grid-template-columns:minmax(0,1fr)}
+}
+
+/* ----- Settings sheet ----- */
+.scrim{position:absolute;inset:0;background:rgba(51,54,31,.35);display:flex;align-items:center;justify-content:center;padding:20px;z-index:5}
+.modal{position:relative;background:var(--cream);border-radius:18px;width:min(720px,100%);max-height:100%;overflow:auto;padding:22px;display:grid;gap:16px;box-shadow:0 30px 60px -20px rgba(51,54,31,.5)}
+.scrim:has(.modal){align-items:center}
+@container (max-width:760px){.scrim{padding:0;align-items:flex-end}.modal{width:100%;border-radius:18px 18px 0 0;max-height:92%}}
+.modal .mh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.modal h2{margin:0;font-family:var(--fd);font-weight:400;font-size:24px;display:flex;gap:8px;align-items:center}
+.app[lang="he"] .modal h2{font-weight:700}
+.modal .mh p{margin:4px 0 0;color:var(--ink-2);font-size:13.5px;max-width:58ch}
+.x{border:1px solid var(--line);background:var(--white);border-radius:10px;width:34px;height:34px;cursor:pointer;flex:none;display:grid;place-items:center}
+.pcards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pc{border:1px solid var(--line);background:var(--white);border-radius:14px;padding:14px;display:grid;gap:10px;align-content:start}
+.pc.active{border-color:var(--tan);box-shadow:0 0 0 2px var(--tan) inset}
+.pc .ph{display:flex;align-items:center;gap:10px}
+.pc .logo{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font:700 13px var(--fm);background:var(--mist);color:#47502a;flex:none}
+.pc .nm{display:grid;line-height:1.25}
+.pc .nm b{font-size:15px}
+.pc .nm span{font-size:12px;color:var(--ink-2)}
+.pc .st{margin-inline-start:auto;font-size:11.5px;font-weight:700;display:flex;gap:5px;align-items:center;white-space:nowrap}
+.pc .st i{width:7px;height:7px;border-radius:50%;background:var(--good);display:block}
+.pc .st.off{color:var(--ink-2)}
+.pc .st.off i{background:var(--line)}
+.pc,.pc .nm,.prefs>*{min-width:0}
+.pc{grid-template-columns:minmax(0,1fr)}
+.pc .ph{flex-wrap:wrap}
+@container (max-width:760px){.pcards{grid-template-columns:minmax(0,1fr)}}
+.field{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;min-width:0}
+.field label{font-size:12px;font-weight:700;color:var(--ink-2)}
+.field input,.field select{font:13px var(--fm);padding:8px 10px;border-radius:9px;border:1px solid var(--line);background:var(--cream);color:var(--ink);width:100%;min-width:0;max-width:100%;box-sizing:border-box;direction:ltr;text-overflow:ellipsis}
+.field select{font-family:var(--fb)}
+.pc .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.btn{border:0;border-radius:10px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer;background:var(--ink);color:var(--cream)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.tan{background:var(--tan);color:#2e2414}
+.pc a{font-size:12px;color:#7a5a32;margin-inline-start:auto}
+.prefs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;padding-top:4px;border-top:1px solid var(--line)}
+.lock{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--ink-2);background:var(--mist);padding:10px 12px;border-radius:10px}
+.lock svg{flex:none;margin-top:2px}
+
+@media (prefers-reduced-motion:no-preference){.ct,.chip,.range button,.seg button{transition:background .15s,border-color .15s}}
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <span class="eyebrow">UI review · Morning Paper palette · nothing is coded yet</span>
+    <h1>World Brief, the screen before we build it</h1>
+    <p>This prototype is clickable. Switch English and Hebrew, change the time range (Today, 2 days, Week), tick countries, and open the AI provider settings from the top bar. All headlines are sample content. Tell me what to change before I start coding.</p>
+  </header>
+
+  <div class="rbar" role="toolbar" aria-label="Review controls">
+    <div class="rgroup"><span class="lbl">Screen</span>
+      <div class="seg" id="viewSeg"><button data-view="desktop" aria-pressed="true">Desktop</button><button data-view="phone" aria-pressed="false">Phone</button></div>
+    </div>
+    <div class="rgroup"><span class="lbl">Review numbers</span>
+      <div class="seg" id="pinSeg"><button data-pins="on" aria-pressed="true">Show</button><button data-pins="off" aria-pressed="false">Hide</button></div>
+    </div>
+    <div class="rgroup"><span class="lbl">Jump to</span>
+      <div class="seg"><button data-jump="settings" aria-pressed="false">Settings screen</button><button data-jump="he" aria-pressed="false">Hebrew + week</button></div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="frame" id="frame"><div class="app" id="app"></div></div>
+    <aside class="notes" aria-label="Review notes">
+      <h2>What to look at</h2>
+      <ol>
+        <li><span class="n">1</span><div><b>AI provider button</b><span>Shows which AI is in use and if its key works. Opens the settings screen.</span></div></li>
+        <li><span class="n">2</span><div><b>English / עברית</b><span>Switches the whole app to Hebrew, right-to-left, and the AI writes summaries in Hebrew too.</span></div></li>
+        <li><span class="n">3</span><div><b>Countries</b><span>Search and tick as many as you want. The number is how many stories were found.</span></div></li>
+        <li><span class="n">4</span><div><b>Time range</b><span>Today, 2 days (grouped Today / Yesterday) or Week (top stories plus a day-by-day timeline).</span></div></li>
+        <li><span class="n">5</span><div><b>AI summary</b><span>One short summary across all ticked countries, with the model name under it.</span></div></li>
+        <li><span class="n">6</span><div><b>Story actions</b><span>"Ask about this" sends the story to the chat. "Translate" flips one story between English and Hebrew.</span></div></li>
+        <li><span class="n">7</span><div><b>Chat</b><span>Ask anything about the news. Answers show their sources and each has a Translate button.</span></div></li>
+        <li><span class="n">8</span><div><b>Settings</b><span>One card per provider: OpenRouter, Claude, ChatGPT, Gemini. Paste a key, test it, pick a model.</span></div></li>
+      </ol>
+      <p class="tip">On a phone the brief and the chat become two tabs at the bottom of the screen.</p>
+    </aside>
+  </div>
+</div>
+
+<script>
+const S = {lang:"en", range:"today", sel:new Set(["JP","KE"]), settings:false, active:"claude", pins:true, tab:"brief", trans:{}};
+
+const COUNTRIES = [["JP","Japan","יפן",14],["KE","Kenya","קניה",9],["PT","Portugal","פורטוגל",7],["CA","Canada","קנדה",11],["MX","Mexico","מקסיקו",12]];
+const PROVIDERS = [
+  {id:"openrouter",name:"OpenRouter",logo:"OR",desc:{en:"One key, hundreds of models",he:"מפתח אחד, מאות מודלים"},ph:"sk-or-v1-…",key:"",model:{en:"Any model (you choose)",he:"כל מודל (לבחירתך)"}},
+  {id:"claude",name:"Claude",logo:"A",desc:{en:"by Anthropic",he:"של Anthropic"},ph:"sk-ant-…",key:"sk-ant-api03-••••••••3f9a",model:{en:"Claude Sonnet 5.5 (recommended)",he:"Claude Sonnet 5.5 (מומלץ)"}},
+  {id:"chatgpt",name:"ChatGPT",logo:"O",desc:{en:"by OpenAI",he:"של OpenAI"},ph:"sk-proj-…",key:"",model:{en:"Default model",he:"מודל ברירת מחדל"}},
+  {id:"gemini",name:"Gemini",logo:"G",desc:{en:"by Google",he:"של Google"},ph:"AIza…",key:"",model:{en:"Default model",he:"מודל ברירת מחדל"}}
+];
+
+const T = {
+  en:{brand:"World Brief",countries:"Your countries",search:"Add a country…",refresh:"Refresh news",updated:"Updated 8 min ago",
+      today:"Today",two:"2 days",week:"Week",sub:{today:"Fri 13 Nov · last 24 hours",two:"Thu 12 – Fri 13 Nov",week:"Sat 7 – Fri 13 Nov"},
+      sample:"Sample content",summary:"AI summary",by:"Written by",yesterday:"Yesterday",top:"Biggest stories this week",daybyday:"Day by day",
+      ask:"Ask about this",translate:"עברית",translateLbl:"Translate to Hebrew",original:"Show original",sources:n=>`${n} sources`,
+      chat:"Ask about the news",ph:"Ask anything about these countries…",copy:"Copy",tr:"Translate",keyok:"key saved",nokey:"no key",
+      none:"Pick a country to start",and:" & ",
+      setT:"AI provider",setS:"Choose which AI writes the summaries and answers your questions. You can save keys for several providers and switch any time.",
+      key:"API key",model:"Model",test:"Test key",ok:"Connected",notset:"No key yet",getkey:"Get a key",inuse:"In use",use:"Use this",
+      lock:"Your keys are saved only in this browser on your device. They are sent straight to the provider you pick and nowhere else.",
+      prefLang:"Summary language",prefRange:"Default time range",langOpts:["Same as the app","Always English","Always Hebrew"],done:"Done",brief:"Brief",askTab:"Ask"},
+  he:{brand:"תקציר עולמי",countries:"המדינות שלך",search:"הוספת מדינה…",refresh:"רענון חדשות",updated:"עודכן לפני 8 דקות",
+      today:"היום",two:"יומיים",week:"שבוע",sub:{today:"יום ו׳, 13 בנובמבר · 24 השעות האחרונות",two:"ה׳ 12 – ו׳ 13 בנובמבר",week:"שבת 7 – ו׳ 13 בנובמבר"},
+      sample:"תוכן לדוגמה",summary:"סיכום AI",by:"נכתב על ידי",yesterday:"אתמול",top:"הסיפורים הגדולים של השבוע",daybyday:"יום אחר יום",
+      ask:"שאל על זה",translate:"English",translateLbl:"תרגום לאנגלית",original:"הצג מקור",sources:n=>`${n} מקורות`,
+      chat:"שאלו על החדשות",ph:"שאלו כל דבר על המדינות האלה…",copy:"העתקה",tr:"תרגום",keyok:"מפתח שמור",nokey:"אין מפתח",
+      none:"בחרו מדינה כדי להתחיל",and:" ו",
+      setT:"ספק AI",setS:"בחרו איזה AI כותב את הסיכומים ועונה על השאלות. אפשר לשמור מפתחות לכמה ספקים ולהחליף מתי שרוצים.",
+      key:"מפתח API",model:"מודל",test:"בדיקת מפתח",ok:"מחובר",notset:"אין עדיין מפתח",getkey:"השגת מפתח",inuse:"בשימוש",use:"השתמש בזה",
+      lock:"המפתחות נשמרים רק בדפדפן הזה במכשיר שלך. הם נשלחים ישירות לספק שבחרת ולשום מקום אחר.",
+      prefLang:"שפת הסיכום",prefRange:"טווח זמן ברירת מחדל",langOpts:["כמו שפת האפליקציה","תמיד אנגלית","תמיד עברית"],done:"סיום",brief:"תקציר",askTab:"שאלות"}
+};
+
+/* stories: [id, cc, tag{en,he}, title{en,he}, text{en,he}, sources, ago{en,he}] */
+const ST = {
+  rate:["rate","JP",{en:"Economy",he:"כלכלה"},{en:"Central bank holds rates, signals review next quarter",he:"הבנק המרכזי משאיר את הריבית, ורומז על בחינה ברבעון הבא"},{en:"Officials point to wage growth and a weaker yen as the main things to watch.",he:"בכירים מצביעים על עליית השכר והיחלשות הין כגורמים המרכזיים למעקב."},4,{en:"2h ago",he:"לפני שעתיים"}],
+  seed:["seed","KE",{en:"Tech",he:"טכנולוגיה"},{en:"Nairobi startups raise record seed funding",he:"סטארט-אפים בניירובי מגייסים סכום שיא בסבבי סיד"},{en:"Fintech and agritech lead, mostly backed by regional investors.",he:"פינטק וחקלאות-טק מובילים, רובם בגיבוי משקיעים אזוריים."},3,{en:"5h ago",he:"לפני 5 שעות"}],
+  flood:["flood","KE",{en:"Climate",he:"אקלים"},{en:"Early rains raise flood warnings in western Kenya",he:"גשמים מוקדמים מעלים אזהרות הצפה במערב קניה"},{en:"Authorities move supplies into three counties ahead of the storms.",he:"הרשויות מציבות ציוד בשלושה מחוזות לקראת הסערות."},5,{en:"7h ago",he:"לפני 7 שעות"}],
+  yen:["yen","JP",{en:"Markets",he:"שווקים"},{en:"Yen falls to its weakest level in three months",he:"הין יורד לשפל של שלושה חודשים"},{en:"Exporters gain, but import costs for energy and food go up.",he:"היצואנים מרוויחים, אבל עלויות היבוא של אנרגיה ומזון עולות."},6,{en:"Yesterday",he:"אתמול"}],
+  tax:["tax","KE",{en:"Policy",he:"מדיניות"},{en:"Kenya announces tax break for early-stage startups",he:"קניה מכריזה על הקלות מס לסטארט-אפים בשלבים מוקדמים"},{en:"The break covers a company's first three years.",he:"ההקלה חלה על שלוש השנים הראשונות של החברה."},4,{en:"Yesterday",he:"אתמול"}]
+};
+const SUM = {
+  today:{en:"Japan's central bank kept rates where they are and hinted at a review next quarter. In Kenya, startups had a record week for seed funding, while western counties prepare for early floods.",
+         he:"הבנק המרכזי של יפן השאיר את הריבית ללא שינוי ורמז על בחינה מחודשת ברבעון הבא. בקניה, סטארט-אפים רשמו שבוע שיא בגיוס הון, ובמחוזות המערביים נערכים להצפות מוקדמות."},
+  two:{en:"Over the last two days the main thread is money. Japan held rates right after the yen hit a three-month low, and Kenya's record startup funding came a day after a new tax break. Flood preparation continues in western Kenya.",
+       he:"ביומיים האחרונים החוט המקשר הוא כסף. יפן השאירה את הריבית מיד אחרי שהין ירד לשפל של שלושה חודשים, וגיוס השיא של הסטארט-אפים בקניה הגיע יום אחרי הקלת מס חדשה. ההיערכות להצפות במערב קניה נמשכת."},
+  week:{en:"A week about the economy. Japan went from strong wage data to a weak yen to a rate hold. Kenya backed its startups with a tax break and saw record funding right after. By the end of the week, the weather in western Kenya became the second big story.",
+        he:"שבוע של כלכלה. ביפן עברו מנתוני שכר חזקים, דרך ין חלש, ועד להשארת הריבית. קניה תמכה בסטארט-אפים שלה בהקלת מס וראתה מיד אחר כך גיוס שיא. לקראת סוף השבוע, מזג האוויר במערב קניה הפך לסיפור הגדול השני."}
+};
+const DAYS = [
+  [{en:"Sat 7 Nov",he:"שבת 7.11"},"JP",{en:"Tokyo hosts regional trade ministers",he:"טוקיו מארחת שרי סחר מהאזור"}],
+  [{en:"Sun 8 Nov",he:"א׳ 8.11"},"KE",{en:"Nairobi marathon draws a record field",he:"מרתון ניירובי שובר שיא משתתפים"}],
+  [{en:"Mon 9 Nov",he:"ב׳ 9.11"},"JP",{en:"Wage data beats forecasts",he:"נתוני השכר עוקפים את התחזיות"}],
+  [{en:"Tue 10 Nov",he:"ג׳ 10.11"},"KE",{en:"Weather service warns of early rains",he:"השירות המטאורולוגי מזהיר מגשמים מוקדמים"}],
+  [{en:"Wed 11 Nov",he:"ד׳ 11.11"},"JP",{en:"Yen hits a three-month low",he:"הין בשפל של שלושה חודשים"}],
+  [{en:"Thu 12 Nov",he:"ה׳ 12.11"},"KE",{en:"Tax break for startups announced",he:"הוכרזה הקלת מס לסטארט-אפים"}],
+  [{en:"Fri 13 Nov",he:"ו׳ 13.11"},"JP",{en:"Rates on hold; Kenya seed funding record",he:"הריבית נשארת; שיא גיוסים בקניה"}]
+];
+const CHAT = {
+  en:[["u","Why does a weak yen matter for the rate decision?"],
+      ["a","A weaker yen makes imports more expensive, which pushes prices up. The bank wants to see if wages keep pace before it raises rates.",2,"ltr"],
+      ["u","Translate that to Hebrew"],
+      ["a","ין חלש מייקר את היבוא ומעלה את המחירים. הבנק רוצה לראות שהשכר עומד בקצב לפני שהוא מעלה את הריבית.",2,"rtl","Translated to Hebrew"]],
+  he:[["u","למה ין חלש משפיע על החלטת הריבית?"],
+      ["a","ין חלש מייקר את היבוא ומעלה את המחירים. הבנק רוצה לראות שהשכר עומד בקצב לפני שהוא מעלה את הריבית.",2,"rtl"],
+      ["u","תרגם לאנגלית"],
+      ["a","A weaker yen makes imports more expensive, which pushes prices up. The bank wants to see if wages keep pace before it raises rates.",2,"ltr","תורגם לאנגלית"]]
+};
+const SUGG = {en:["Will rates go up?","Only Kenya news","Translate the summary to Hebrew"],he:["האם הריבית תעלה?","רק חדשות מקניה","תרגם את הסיכום לאנגלית"]};
+
+const ic = {
+  search:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  refresh:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>',
+  send:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  x:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  lock:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'
+};
+
+const app = document.getElementById("app");
+const pin = n => S.pins ? `<span class="pin" aria-hidden="true">${n}</span>` : "";
+const L = () => T[S.lang];
+
+function storyHTML(s, first){
+  const lang = S.trans[s[0]] ? (S.lang==="en"?"he":"en") : S.lang;
+  const dir = lang==="he"?"rtl":"ltr";
+  const t=L();
+  return `<article class="story" dir="${dir}" lang="${lang}">
+    <div class="meta"><span class="tag">${s[2][lang]}</span><span class="cc">${s[1]}</span><span>${T[lang].sources(s[5])} · ${s[6][lang]}</span></div>
+    <h3>${s[3][lang]}</h3><p>${s[4][lang]}</p>
+    <div class="acts" dir="${S.lang==="he"?"rtl":"ltr"}"><button class="chip" data-act="ask">${t.ask}</button><button class="chip" data-act="tr" data-id="${s[0]}">${S.trans[s[0]]?t.original:t.translateLbl}</button>${first?pin(6):""}</div>
+  </article>`;
+}
+
+function mainBody(){
+  const t=L(), lang=S.lang;
+  if(S.range==="today") return `<div class="stories">${[ST.rate,ST.seed,ST.flood].map((s,i)=>storyHTML(s,i===0)).join("")}</div>`;
+  if(S.range==="two") return `
+    <div class="group"><div class="gh">${t.today}</div><div class="stories">${[ST.rate,ST.seed,ST.flood].map((s,i)=>storyHTML(s,i===0)).join("")}</div></div>
+    <div class="group"><div class="gh">${t.yesterday}</div><div class="stories">${[ST.yen,ST.tax].map(s=>storyHTML(s)).join("")}</div></div>`;
+  return `
+    <div class="group"><div class="gh">${t.top}</div><div class="stories">${[ST.rate,ST.yen,ST.tax].map((s,i)=>storyHTML(s,i===0)).join("")}</div></div>
+    <div class="group"><div class="gh">${t.daybyday}</div><div class="timeline">${DAYS.map((d,i)=>`<div class="day${i===6?" today":""}"><span class="d">${d[0][lang]}</span><span class="l"><span class="cc">${d[1]}</span>${d[2][lang]}</span></div>`).join("")}</div></div>`;
+}
+
+function settingsHTML(){
+  const t=L();
+  return `<div class="scrim" data-act="closebg"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="setT">
+    <div class="mh"><div><h2 id="setT">${t.setT} ${pin(8)}</h2><p>${t.setS}</p></div><button class="x" data-act="close" aria-label="Close">${ic.x}</button></div>
+    <div class="pcards">${PROVIDERS.map(p=>{
+      const has=!!p.key, act=S.active===p.id;
+      return `<div class="pc${act?" active":""}">
+        <div class="ph"><span class="logo">${p.logo}</span><span class="nm"><b>${p.name}</b><span>${p.desc[S.lang]}</span></span>
+          <span class="st${has?"":" off"}"><i></i>${has?t.ok:t.notset}</span></div>
+        <div class="field"><label for="k-${p.id}">${t.key}</label><input id="k-${p.id}" type="text" value="${p.key}" placeholder="${p.ph}" autocomplete="off" spellcheck="false"></div>
+        <div class="field"><label for="m-${p.id}">${t.model}</label><select id="m-${p.id}"><option>${p.model[S.lang]}</option></select></div>
+        <div class="row">${act?`<button class="btn tan" disabled>${t.inuse}</button>`:`<button class="btn" data-act="use" data-id="${p.id}">${t.use}</button>`}<button class="btn ghost">${t.test}</button><a href="#" onclick="return false">${t.getkey}</a></div>
+      </div>`}).join("")}</div>
+    <div class="prefs">
+      <div class="field"><label for="pl">${t.prefLang}</label><select id="pl">${t.langOpts.map(o=>`<option>${o}</option>`).join("")}</select></div>
+      <div class="field"><label for="pr">${t.prefRange}</label><select id="pr"><option>${t.today}</option><option>${t.two}</option><option>${t.week}</option></select></div>
+    </div>
+    <div class="lock">${ic.lock}<span>${t.lock}</span></div>
+    <div style="display:flex;justify-content:flex-end"><button class="btn" data-act="close">${t.done}</button></div>
+  </div></div>`;
+}
+
+function render(){
+  const t=L(), he=S.lang==="he";
+  const prov = PROVIDERS.find(p=>p.id===S.active);
+  const selNames = COUNTRIES.filter(c=>S.sel.has(c[0])).map(c=>he?c[2]:c[1]);
+  const title = selNames.length ? (selNames.length>1 ? selNames.slice(0,-1).join(", ")+t.and+selNames.at(-1) : selNames[0]) : t.none;
+  app.lang=S.lang; app.dir=he?"rtl":"ltr"; app.dataset.tab=S.tab;
+  app.innerHTML = `<div class="grid">
+    <header class="top">
+      <div class="brand"><span class="mark"><i></i></span>${t.brand}</div>
+      <div class="lang" role="group" aria-label="Language">${pin(2)}<button data-act="lang" data-v="en" aria-pressed="${!he}">EN</button><button data-act="lang" data-v="he" aria-pressed="${he}">עב</button></div>
+      <button class="prov" data-act="open">${pin(1)}<span class="dot${prov.key?"":" off"}"></span>${prov.name}<small>· ${prov.key?t.keyok:t.nokey}</small></button>
+    </header>
+    <aside class="side">
+      <span class="label">${t.countries} ${pin(3)}</span>
+      <div class="search">${ic.search}${t.search}</div>
+      <div class="clist">${COUNTRIES.map(c=>`<button class="ct" data-act="ct" data-id="${c[0]}" aria-pressed="${S.sel.has(c[0])}"><span class="chk"></span><span class="iso">${c[0]}</span>${he?c[2]:c[1]}<span class="cnt">${c[3]}</span></button>`).join("")}</div>
+      <div class="foot"><button class="refresh">${ic.refresh}${t.refresh}</button><span class="upd">${t.updated}</span></div>
+    </aside>
+    <section class="main">
+      <div class="mhead">
+        <div class="t"><h2>${title}</h2><div class="sub">${t.sub[S.range]} <span class="badge">${t.sample}</span></div></div>
+        <div class="range" role="group" aria-label="Time range">${pin(4)}${["today","two","week"].map(r=>`<button data-act="range" data-v="${r}" aria-pressed="${S.range===r}">${t[r]}</button>`).join("")}</div>
+      </div>
+      <div class="sum"><div class="h"><b>${t.summary} ${pin(5)}</b><span class="by">${t.by} ${prov.name}</span></div><p>${SUM[S.range][S.lang]}</p></div>
+      ${mainBody()}
+    </section>
+    <section class="chat">
+      <div class="h"><b>${t.chat} ${pin(7)}</b><span>${prov.name}</span></div>
+      <div class="msgs">${CHAT[S.lang].map(m=>m[0]==="u"?`<div class="bub u">${m[1]}</div>`:
+        `<div class="bub a">${m[4]?`<span class="tr">${m[4]}</span>`:""}<span dir="${m[3]}" lang="${m[3]==="rtl"?"he":"en"}">${m[1]}</span><span class="ftr"><span class="src">${t.sources(m[2])}</span><button class="mini">${t.tr}</button><button class="mini">${t.copy}</button></span></div>`).join("")}</div>
+      <div class="sugg">${SUGG[S.lang].map(s=>`<button class="chip">${s}</button>`).join("")}</div>
+      <div class="inbox"><span class="ph">${t.ph}</span><button class="send" aria-label="Send">${ic.send}</button></div>
+    </section>
+  </div>
+  <nav class="tabs"><button data-act="tab" data-v="brief" aria-pressed="${S.tab==="brief"}"><i></i>${t.brief}</button><button data-act="tab" data-v="ask" aria-pressed="${S.tab==="ask"}"><i></i>${t.askTab}</button></nav>
+  ${S.settings?settingsHTML():""}`;
+}
+
+app.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]"); if(!b) return;
+  const a=b.dataset.act;
+  if(a==="closebg" && e.target!==b) return;
+  if(a==="lang"){S.lang=b.dataset.v;S.trans={};}
+  else if(a==="range") S.range=b.dataset.v;
+  else if(a==="ct"){const id=b.dataset.id; S.sel.has(id)?S.sel.delete(id):S.sel.add(id);}
+  else if(a==="open") S.settings=true;
+  else if(a==="close"||a==="closebg") S.settings=false;
+  else if(a==="use") S.active=b.dataset.id;
+  else if(a==="tr") S.trans[b.dataset.id]=!S.trans[b.dataset.id];
+  else if(a==="tab") S.tab=b.dataset.v;
+  else if(a==="ask"){S.tab="ask";}
+  else return;
+  render();
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&S.settings){S.settings=false;render();}});
+
+function setSeg(seg,attr,val){seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset[attr]===val));}
+document.getElementById("viewSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;setSeg(e.currentTarget,"view",b.dataset.view);document.getElementById("frame").classList.toggle("phone",b.dataset.view==="phone");});
+document.getElementById("pinSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;setSeg(e.currentTarget,"pins",b.dataset.pins);S.pins=b.dataset.pins==="on";render();});
+document.querySelectorAll("[data-jump]").forEach(b=>b.addEventListener("click",()=>{
+  if(b.dataset.jump==="settings"){S.settings=true;}
+  else {S.lang="he";S.range="week";S.settings=false;S.trans={};}
+  render(); app.scrollIntoView({behavior:"smooth",block:"start"});
+}));
+render();
+</script>
