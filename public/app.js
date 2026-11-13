@@ -101,9 +101,9 @@ async function api(path, body) {
   return data;
 }
 
-function ai(system, messages) {
+function ai(system, messages, model) {
   const p = provider();
-  return api("/api/ai", { provider: p.id, key: S.keys[p.id], model: S.models[p.id] || p.model, system, messages });
+  return api("/api/ai", { provider: p.id, key: S.keys[p.id], model: model || S.models[p.id] || p.model, system, messages });
 }
 
 function parseJson(text) {
@@ -165,7 +165,7 @@ async function summarize(force = false) {
   if (!feed || feed.status !== "ready" || !feed.items.length || !hasKey()) { renderMain(); return; }
   const key = briefKey();
   if (!force && R.brief.has(key) && R.brief.get(key).status !== "error") { renderMain(); return; }
-  R.brief.set(key, { status: "loading" });
+  R.brief.set(key, { status: "loading", start: Date.now() });
   renderMain();
 
   const lang = contentLang() === "he" ? "Hebrew" : "English";
@@ -197,16 +197,21 @@ SUMMARY FORMAT (Markdown inside the JSON string, use \\n for new lines):
 Write ${nStories} stories, the most important first. Every story must list the headline numbers it is based on.${S.range === "week" ? " Include every day in the range that has headlines, newest first." : ""} All text in ${lang}.`;
 
   // Free and small models sometimes return broken JSON, so try twice before showing an error.
+  // On OpenRouter, if the chosen model fails (removed, overloaded), fall back to the free router once.
+  let model; let note = "";
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      const res = await ai(system, [{ role: "user", content: user }]);
+      const res = await ai(system, [{ role: "user", content: user }], model);
       const data = parseJson(res.text);
       if (!data.summary || !Array.isArray(data.stories)) throw new Error("The AI answer was incomplete. Try again or pick another model.");
-      R.brief.set(key, { status: "ready", data, model: res.model });
+      R.brief.set(key, { status: "ready", data, model: res.model, note });
       break;
     } catch (e) {
+      const keyError = /api key|x-api-key|unauthori|authenticat|401|No auth/i.test(e.message);
       const providerError = /^(OpenRouter|Claude|ChatGPT|Gemini):/.test(e.message);
-      if (attempt === 2 || providerError) { R.brief.set(key, { status: "error", error: e.message }); break; }
+      const canFallback = S.active === "openrouter" && !keyError && (S.models.openrouter || provider().model) !== "openrouter/free" && !model;
+      if (attempt === 1 && canFallback && (providerError || /took more than/.test(e.message))) { model = "openrouter/free"; note = "fallback"; continue; }
+      if (attempt === 2 || providerError || /took more than/.test(e.message)) { R.brief.set(key, { status: "error", error: e.message }); break; }
     }
   }
   if (briefKey() === key) renderMain();
@@ -425,7 +430,7 @@ function renderMain() {
 
   const key = briefKey(); const b = R.brief.get(key);
   if (!b || b.status === "loading") {
-    el.innerHTML = head + `<div class="sum"><div class="h"><b>${L.summary}</b><span class="by">${esc(provider().name)}</span></div><div class="loading-line"><span class="spinner"></span>${L.summarizing}</div></div>` + rawHeadlines(items);
+    el.innerHTML = head + `<div class="sum"><div class="h"><b>${L.summary}</b><span class="by">${esc(provider().name)}</span></div><div class="loading-line"><span class="spinner"></span>${L.summarizing} <span id="elapsed" data-start="${b?.start || Date.now()}"></span></div><div class="slow" id="slowHint" hidden><span>${L.slow}</span><button class="chip" data-act="open">${L.pickFaster}</button></div></div>` + rawHeadlines(items);
     return;
   }
   if (b.status === "error") {
@@ -435,7 +440,7 @@ function renderMain() {
 
   const d = b.data; const cl = contentLang();
   const sumDir = isHebrew(d.summary) ? "rtl" : "ltr";
-  let html = head + `<div class="sum"><div class="h"><b>${L.summary}</b><span class="by">${L.by} ${esc(provider().name)}${b.model ? " · " + esc(b.model) : ""}</span></div><div class="sumtext" dir="${sumDir}" lang="${cl}">${md(d.summary.replace(/\\n/g, "\n"), { named: true })}</div></div>`;
+  let html = head + `<div class="sum"><div class="h"><b>${L.summary}</b><span class="by">${L.by} ${esc(provider().name)}${b.model ? " · " + esc(b.model) : ""}</span></div>${b.note === "fallback" ? `<p class="fallback">${esc(L.fallback(b.model || "openrouter/free"))}</p>` : ""}<div class="sumtext" dir="${sumDir}" lang="${cl}">${md(d.summary.replace(/\\n/g, "\n"), { named: true })}</div></div>`;
   const cards = d.stories.map((s, i) => ({ s, i }));
   const card = ({ s, i }) => storyCard(s, i, key, items);
 
@@ -661,6 +666,14 @@ app.addEventListener("keydown", (e) => {
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && R.settings) closeSettings(); });
 
 function autoGrow() { const q = $("#q"); if (!q) return; q.style.height = "auto"; q.style.height = Math.min(q.scrollHeight, 140) + "px"; }
+
+// Live "12s" counter while the AI writes the summary, plus a hint when the model is slow.
+setInterval(() => {
+  const el = $("#elapsed"); if (!el) return;
+  const s = Math.round((Date.now() - Number(el.dataset.start)) / 1000);
+  el.textContent = `${s}s`;
+  const hint = $("#slowHint"); if (hint && s >= 20) hint.hidden = false;
+}, 1000);
 
 /* ============================== Start ============================== */
 

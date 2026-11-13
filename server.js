@@ -79,6 +79,8 @@ async function getNews(country, days) {
 
 /* ------------------------------ AI providers ------------------------------ */
 
+const AI_TIMEOUT = 90 * 1000; // stop waiting for a model after 90 seconds
+
 async function readUpstream(res, who) {
   const text = await res.text();
   let body;
@@ -97,8 +99,13 @@ const providers = {
     async chat({ key, model, system, messages }) {
       const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
+        signal: AbortSignal.timeout(AI_TIMEOUT),
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}`, "X-Title": "World Brief" },
-        body: JSON.stringify({ model: model || "openrouter/auto", messages: [{ role: "system", content: system }, ...messages] })
+        body: JSON.stringify({
+          model: model || "openrouter/free",
+          messages: [{ role: "system", content: system }, ...messages],
+          reasoning: { effort: "low" } // models that "think" first are much faster with less thinking
+        })
       });
       const b = await readUpstream(res, "OpenRouter");
       return { text: b.choices?.[0]?.message?.content ?? "", model: b.model || model };
@@ -117,6 +124,7 @@ const providers = {
     async chat({ key, model, system, messages }) {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
+        signal: AbortSignal.timeout(AI_TIMEOUT),
         headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
         body: JSON.stringify({ model: model || "claude-sonnet-5-5", max_tokens: 4096, system, messages })
       });
@@ -136,6 +144,7 @@ const providers = {
     async chat({ key, model, system, messages }) {
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
+        signal: AbortSignal.timeout(AI_TIMEOUT),
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
         body: JSON.stringify({ model: model || "gpt-4o-mini", messages: [{ role: "system", content: system }, ...messages] })
       });
@@ -156,6 +165,7 @@ const providers = {
       const m = (model || "gemini-2.5-flash").replace(/^models\//, "");
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent`, {
         method: "POST",
+        signal: AbortSignal.timeout(AI_TIMEOUT),
         headers: { "Content-Type": "application/json", "x-goog-api-key": key },
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: system }] },
@@ -254,6 +264,10 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET") return serveStatic(req, res, url.pathname);
     res.writeHead(405); res.end();
   } catch (err) {
+    if (err.name === "TimeoutError") {
+      err.status = 504;
+      err.message = "The AI took more than 90 seconds to answer. Pick a faster model in AI provider settings.";
+    }
     console.error(err.message);
     send(res, err.status || 500, { error: err.message || "Something went wrong" });
   }

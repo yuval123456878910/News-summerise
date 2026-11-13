@@ -26,7 +26,9 @@ export const T = {
     youAsk: "Tell me more about this story:", translatedTo: "Translated to Hebrew",
     gRec: "Recommended", gFree: (n) => `Free models (${n})`, gPaid: "Paid models", gKey: "All models for your key", gCur: "Current",
     other: "Other (type a model name)…", otherPh: "Model name, e.g. provider/model", backToList: "Back to list",
-    freeNote: "Free models cost nothing but have daily limits and can be slower."
+    freeNote: "Free models cost nothing but have daily limits and can be slower.",
+    slow: "This model is slow. A faster model answers in a few seconds.", pickFaster: "Pick a faster model",
+    fallback: (m) => `Your model did not answer, so a free model was used instead (${m}).`
   },
   he: {
     brand: "תקציר עולמי", countries: "המדינות שלך", search: "הוספת מדינה…", noMatch: "לא נמצאה מדינה",
@@ -55,7 +57,9 @@ export const T = {
     youAsk: "ספר לי עוד על הכתבה הזאת:", translatedTo: "תורגם לאנגלית",
     gRec: "מומלצים", gFree: (n) => `מודלים חינמיים (${n})`, gPaid: "מודלים בתשלום", gKey: "כל המודלים של המפתח שלך", gCur: "נוכחי",
     other: "אחר (הקלדת שם מודל)…", otherPh: "שם המודל, למשל provider/model", backToList: "חזרה לרשימה",
-    freeNote: "מודלים חינמיים לא עולים כסף, אבל יש להם מגבלה יומית והם יכולים להיות איטיים יותר."
+    freeNote: "מודלים חינמיים לא עולים כסף, אבל יש להם מגבלה יומית והם יכולים להיות איטיים יותר.",
+    slow: "המודל הזה איטי. מודל מהיר יותר עונה תוך כמה שניות.", pickFaster: "בחירת מודל מהיר יותר",
+    fallback: (m) => `המודל שלך לא ענה, אז נעשה שימוש במודל חינמי אחר (${m}).`
   }
 };
 
@@ -63,8 +67,9 @@ export const T = {
 // After "Test key" the dropdown also lists every model the key can use.
 export const PROVIDERS = [
   { id: "openrouter", name: "OpenRouter", logo: "OR", desc: { en: "One key, hundreds of models", he: "מפתח אחד, מאות מודלים" },
-    ph: "sk-or-v1-…", model: "openrouter/free", link: "https://openrouter.ai/keys",
-    presets: [["openrouter/free", "Free: best free model available", "חינם: המודל החינמי הזמין הטוב ביותר"],
+    ph: "sk-or-v1-…", model: "baidu/ernie-5.5-flash-preview:free", link: "https://openrouter.ai/keys",
+    presets: [["baidu/ernie-5.5-flash-preview:free", "Fast and free: ERNIE 5.5 Flash (recommended)", "מהיר וחינמי: ERNIE 5.5 Flash (מומלץ)"],
+              ["openrouter/free", "Free: random free model (speed varies)", "חינם: מודל חינמי אקראי (המהירות משתנה)"],
               ["openrouter/auto", "Auto: OpenRouter picks (paid)", "אוטומטי: OpenRouter בוחר (בתשלום)"]] },
   { id: "claude", name: "Claude", logo: "A", desc: { en: "by Anthropic", he: "של Anthropic" },
     ph: "sk-ant-…", model: "claude-sonnet-5-5", link: "https://console.anthropic.com/settings/keys",

@@ -96,6 +96,10 @@ mark { background: linear-gradient(transparent 45%, rgba(212, 163, 115, .55) 45%
 .sum .by { font-size: 12px; color: var(--tan-deep); }
 .sum .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .sum.err p { color: var(--bad); }
+.sum #elapsed { font: 500 12px var(--fm); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.sum .slow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
+.sum .slow[hidden] { display: none; }
+.sum p.fallback { font-size: 12.5px; color: var(--tan-deep); }
 
 .group { display: grid; gap: 10px; }
 .gh { display: flex; align-items: center; gap: 10px; font-family: var(--fd); font-size: 17px; margin: 0; font-weight: 400; }
