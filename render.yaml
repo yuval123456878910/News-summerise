@@ -1,0 +1,9 @@
+# Render setup: in Render choose New > Blueprint and pick this repository.
+services:
+  - type: web
+    name: world-brief
+    runtime: node
+    plan: free
+    buildCommand: "true"
+    startCommand: npm start
+    healthCheckPath: /

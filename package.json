@@ -1,0 +1,14 @@
+{
+  "name": "world-brief",
+  "version": "1.0.0",
+  "description": "Pick countries, get an AI summary of their news, ask questions, in English or Hebrew.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
