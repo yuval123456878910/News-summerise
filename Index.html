@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World News AI</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
+    --text:#e8eaf0; --muted:#9aa1b2; --accent:#5b8cff; --accent2:#3d6cf0;
+    --ok:#3ecf8e; --err:#ff6b6b; --chip:#253049;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column}
+  header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+  header h1{font-size:17px;margin:0;flex:1}
+  header .dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
+  header .dot.ok{background:var(--ok)}
+  button{font:inherit;color:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:8px 12px}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  button.primary:hover{background:var(--accent2)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  input,select,textarea{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;width:100%}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.04em}
+  .wrap{flex:1;display:flex;min-height:0}
+  aside{width:340px;flex-shrink:0;border-right:1px solid var(--line);background:var(--panel);padding:14px 16px;overflow-y:auto}
+  main{flex:1;display:flex;flex-direction:column;min-width:0}
+  #chat{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+  .msg{max-width:860px;width:100%;margin:0 auto;padding:12px 14px;border-radius:14px;border:1px solid var(--line)}
+  .msg.user{background:var(--chip);border-color:#33426a;align-self:center}
+  .msg.ai{background:var(--panel)}
+  .msg.err{border-color:var(--err);color:#ffc7c7}
+  .msg .who{font-size:12px;color:var(--muted);margin-bottom:4px;display:flex;justify-content:space-between;gap:8px}
+  .msg h2,.msg h3,.msg h4{margin:12px 0 6px;font-size:16px}
+  .msg h2{font-size:18px}
+  .msg p{margin:6px 0}
+  .msg ul,.msg ol{margin:6px 0;padding-left:22px}
+  .msg a{color:#8fb0ff}
+  .msg code{background:var(--panel2);padding:1px 5px;border-radius:5px}
+  .sources{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px;font-size:13px}
+  .sources summary{cursor:pointer;color:var(--muted)}
+  .sources ol{margin:6px 0;padding-left:20px}
+  .copy{background:none;border:none;padding:0;color:var(--muted);font-size:12px}
+  .composer{border-top:1px solid var(--line);padding:12px;background:var(--panel)}
+  .composer .row{max-width:860px;margin:0 auto;display:flex;gap:8px;align-items:flex-end}
+  .composer textarea{resize:none;min-height:44px;max-height:160px}
+  .composer .opts{max-width:860px;margin:6px auto 0;font-size:13px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip{background:var(--chip);border:1px solid #33426a;border-radius:999px;padding:4px 6px 4px 11px;font-size:13px;display:flex;align-items:center;gap:4px}
+  .chip button{border:none;background:none;padding:0 5px;color:var(--muted);font-size:15px;line-height:1}
+  .addrow{display:flex;gap:6px}
+  .addrow button{flex-shrink:0}
+  .quick{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .quick button{font-size:12px;padding:4px 8px;border-radius:999px}
+  .check{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:10px;color:var(--text);text-transform:none;letter-spacing:0}
+  .check input{width:auto}
+  .note{font-size:12px;color:var(--muted);margin-top:6px}
+  .sect{border-top:1px solid var(--line);margin-top:16px;padding-top:6px}
+  .sect h3{font-size:13px;margin:8px 0 0;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .empty{margin:auto;text-align:center;color:var(--muted);max-width:420px;padding:20px}
+  .empty b{color:var(--text)}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--muted);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #toggleSide{display:none}
+  @media (max-width:820px){
+    aside{position:fixed;inset:53px 0 0 0;width:auto;z-index:5;display:none;border-right:none}
+    aside.open{display:block}
+    #toggleSide{display:inline-block}
+  }
+</style>
+</head>
+<body>
+<header>
+  <span class="dot" id="statusDot" title="API key status"></span>
+  <h1>🌍 World News AI <span style="font-size:11px;color:var(--muted);font-weight:400">v4</span></h1>
+  <button id="testBtn" title="Check what this page can reach">🔌 Test</button>
+  <button id="toggleSide">⚙ Setup</button>
+  <button id="clearBtn" title="Clear chat">Clear</button>
+</header>
+
+<div class="wrap">
+  <aside id="side">
+    <h3 style="margin:4px 0 0;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">AI provider</h3>
+    <label for="provider">Provider</label>
+    <select id="provider">
+      <option value="openrouter">OpenRouter</option>
+      <option value="anthropic">Claude (Anthropic)</option>
+      <option value="openai">ChatGPT (OpenAI)</option>
+      <option value="gemini">Gemini (Google)</option>
+    </select>
+    <label for="apiKey">API key</label>
+    <input id="apiKey" type="password" placeholder="Paste your key" autocomplete="off">
+    <label for="modelSel">Model</label>
+    <select id="modelSel"></select>
+    <input id="model" placeholder="Type any model name" style="display:none;margin-top:6px" autocomplete="off">
+    <div class="note" id="modelNote"></div>
+
+    <label for="source">News source</label>
+    <select id="source">
+      <option value="web">AI web search (best quality)</option>
+      <option value="free">Free headlines (no cost)</option>
+    </select>
+    <div class="note" id="sourceNote"></div>
+    <label class="check"><input type="checkbox" id="rememberKey" checked> Remember key in this browser</label>
+    <div class="note" id="keyHelp"></div>
+
+    <div class="sect">
+      <h3>Countries</h3>
+      <label for="countryInput">Add a country</label>
+      <div class="addrow">
+        <input id="countryInput" list="countryList" placeholder="e.g. Israel">
+        <button id="addCountry">Add</button>
+      </div>
+      <datalist id="countryList"></datalist>
+      <div class="quick" id="quick"></div>
+      <div class="chips" id="chips"></div>
+
+      <label for="range">Time range</label>
+      <select id="range">
+        <option value="the last 24 hours">Last 24 hours</option>
+        <option value="the last 3 days" selected>Last 3 days</option>
+        <option value="the last 7 days">Last week</option>
+      </select>
+      <label for="focus">Focus (optional)</label>
+      <input id="focus" placeholder="e.g. economy, tech, politics, sports">
+      <label for="lang">Summary language</label>
+      <select id="lang">
+        <option>English</option><option>Hebrew</option><option>Arabic</option><option>Russian</option>
+        <option>Spanish</option><option>French</option><option>German</option>
+      </select>
+      <label for="mode">How to summarize</label>
+      <select id="mode">
+        <option value="each">One summary per country</option>
+        <option value="combined">One combined briefing</option>
+      </select>
+      <button class="primary" id="runBtn" style="width:100%;margin-top:14px">📰 Summarize the news</button>
+    </div>
+  </aside>
+
+  <main>
+    <div id="chat">
+      <div class="empty" id="empty">
+        <p style="font-size:38px;margin:0">🌍</p>
+        <p><b>Add countries, then tap “Summarize the news”.</b></p>
+        <p>The AI searches the web for the latest news in each country and summarizes it. After that you can ask it anything about what it found, or about any other news.</p>
+        <p class="note">Set your provider and API key in Setup first.</p>
+      </div>
+    </div>
+    <div class="composer">
+      <div class="row">
+        <textarea id="q" rows="1" placeholder="Ask a question about the news…"></textarea>
+        <button class="primary" id="askBtn">Send</button>
+      </div>
+      <div class="opts">
+        <label class="check" style="margin:0"><input type="checkbox" id="webAsk" checked> Search the web when answering</label>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+/* ---------- config ---------- */
+const PROVIDERS = {
+  openrouter: { name:"OpenRouter", def:"openrouter/free",
+    free:["openrouter/free","meta-llama/llama-3.3-70b-instruct:free","deepseek/deepseek-chat-v3.1:free","qwen/qwen3-235b-a22b:free","mistralai/mistral-small-3.2-24b-instruct:free","openai/gpt-oss-20b:free"],
+    models:["openai/gpt-4o-mini","openai/gpt-4.1","anthropic/claude-sonnet-4.5","google/gemini-2.5-flash","google/gemini-2.5-pro","deepseek/deepseek-chat-v3.1"],
+    help:'Get a key at openrouter.ai/keys. Free models cost nothing per message (limit: about 50 requests a day, or 1,000 once you have bought $10 of credits). Web search costs a little even with free models, so pick "Free headlines" as the news source to stay at $0.' },
+  anthropic: { name:"Claude", def:"claude-sonnet-5-5",
+    models:["claude-sonnet-5-5","claude-opus-5-5","claude-haiku-5-5","claude-sonnet-4-5"],
+    help:'Get a key at console.anthropic.com. Uses Claude\'s built-in web search tool (must be enabled for your org).' },
+  openai: { name:"ChatGPT", def:"gpt-4.1-mini",
+    models:["gpt-4.1-mini","gpt-4.1","gpt-4o","gpt-4o-mini","gpt-5"],
+    help:'Get a key at platform.openai.com/api-keys. Uses the Responses API with the web_search tool.' },
+  gemini: { name:"Gemini", def:"gemini-2.5-flash",
+    models:["gemini-2.5-flash","gemini-2.5-pro","gemini-2.0-flash"],
+    help:'Get a free key at aistudio.google.com/apikey. Uses Google Search grounding.' }
+};
+
+const COUNTRIES = ["Afghanistan","Albania","Algeria","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahrain","Bangladesh","Belarus","Belgium","Bolivia","Bosnia and Herzegovina","Brazil","Bulgaria","Cambodia","Cameroon","Canada","Chile","China","Colombia","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Dominican Republic","Ecuador","Egypt","Estonia","Ethiopia","Finland","France","Georgia","Germany","Ghana","Greece","Guatemala","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kuwait","Latvia","Lebanon","Libya","Lithuania","Luxembourg","Malaysia","Mexico","Moldova","Morocco","Myanmar","Nepal","Netherlands","New Zealand","Nigeria","North Korea","Norway","Oman","Pakistan","Palestine","Panama","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Saudi Arabia","Senegal","Serbia","Singapore","Slovakia","Slovenia","South Africa","South Korea","Spain","Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan","Tanzania","Thailand","Tunisia","Turkey","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Venezuela","Vietnam","Yemen","Zimbabwe"];
+const QUICK = ["Israel","United States","United Kingdom","Ukraine","China","India","Germany","France"];
+
+/* ---------- storage (safe) ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("wna_"+k); return v===null ? d : JSON.parse(v); }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem("wna_"+k, JSON.stringify(v)); }catch{} },
+  del(k){ try{ localStorage.removeItem("wna_"+k); }catch{} }
+};
+
+/* ---------- elements ---------- */
+const $ = id => document.getElementById(id);
+const el = { provider:$("provider"), apiKey:$("apiKey"), model:$("model"), modelSel:$("modelSel"), modelNote:$("modelNote"),
+  source:$("source"), sourceNote:$("sourceNote"),
+  remember:$("rememberKey"), keyHelp:$("keyHelp"), countryInput:$("countryInput"), countryList:$("countryList"),
+  chips:$("chips"), quick:$("quick"), range:$("range"), focus:$("focus"), lang:$("lang"), mode:$("mode"),
+  runBtn:$("runBtn"), chat:$("chat"), q:$("q"), askBtn:$("askBtn"), webAsk:$("webAsk"), dot:$("statusDot"),
+  side:$("side"), toggleSide:$("toggleSide"), clearBtn:$("clearBtn") };
+
+let countries = store.get("countries", ["Israel"]);
+let history = [];      // [{role:"user"|"assistant", content:string}]
+let busy = false;
+
+/* ---------- setup UI ---------- */
+COUNTRIES.forEach(c => { const o=document.createElement("option"); o.value=c; el.countryList.appendChild(o); });
+QUICK.forEach(c => { const b=document.createElement("button"); b.textContent="+ "+c; b.onclick=()=>addCountry(c); el.quick.appendChild(b); });
+
+/* ---- model dropdown (a real <select>, so the list never "disappears") ---- */
+let liveFree = store.get("orFree", null);   // {t:time, ids:[...]} fetched from OpenRouter
+function freeModels(){
+  const live = liveFree && liveFree.ids && liveFree.ids.length ? liveFree.ids : [];
+  const all = ["openrouter/free", ...live, ...PROVIDERS.openrouter.free];
+  return [...new Set(all)];
+}
+function addGroup(label, ids){
+  if (!ids.length) return;
+  const g = document.createElement("optgroup"); g.label = label;
+  ids.forEach(id => { const o = document.createElement("option"); o.value = id;
+    o.textContent = id === "openrouter/free" ? "openrouter/free — auto-picks a free model" : id; g.appendChild(o); });
+  el.modelSel.appendChild(g);
+}
+function buildModelSelect(){
+  const p = el.provider.value, cfg = PROVIDERS[p];
+  const saved = store.get("model_"+p, cfg.def);
+  el.modelSel.innerHTML = "";
+  if (p === "openrouter"){ addGroup("🆓 Free models", freeModels()); addGroup("💳 Paid models", cfg.models); }
+  else addGroup("Models", cfg.models);
+  const c = document.createElement("option"); c.value = "__custom"; c.textContent = "✏️ Custom model name…";
+  el.modelSel.appendChild(c);
+  const exists = [...el.modelSel.options].some(o => o.value === saved);
+  el.modelSel.value = exists ? saved : "__custom";
+  el.model.value = exists ? "" : saved;
+  el.model.style.display = el.modelSel.value === "__custom" ? "block" : "none";
+  updateNotes();
+}
+function currentModel(){
+  const p = el.provider.value;
+  const v = el.modelSel.value === "__custom" ? el.model.value.trim() : el.modelSel.value;
+  return v || PROVIDERS[p].def;
+}
+function isFreeModel(){ return el.provider.value === "openrouter" && /(:free$|^openrouter\/free)/.test(currentModel()); }
+function updateNotes(){
+  el.modelNote.textContent = isFreeModel() ? "🆓 Free model: no cost per message." : "";
+  el.sourceNote.textContent = el.source.value === "free"
+    ? "Free: the app downloads recent headlines (Google News, GDELT or Wikipedia, whichever answers) and the AI summarizes them. Works with any model."
+    : (el.provider.value === "openrouter" ? "Uses OpenRouter web search: about $0.005–$0.02 per search, even on free models." : "Uses the provider's built-in web search.");
+}
+async function refreshFreeModels(){
+  if (liveFree && Date.now() - liveFree.t < 6*3600e3) return;   // refresh at most every 6h
+  try {
+    const r = await fetch("https://openrouter.ai/api/v1/models");
+    const d = await r.json();
+    const ids = (d.data || []).filter(m => m.id.endsWith(":free") ||
+      (m.pricing && Number(m.pricing.prompt) === 0 && Number(m.pricing.completion) === 0))
+      .map(m => m.id).sort();
+    if (ids.length){ liveFree = { t: Date.now(), ids }; store.set("orFree", liveFree);
+      if (el.provider.value === "openrouter") buildModelSelect(); }
+  } catch { /* offline: keep the built-in list */ }
+}
+
+function loadProvider(){
+  const p = el.provider.value, cfg = PROVIDERS[p];
+  buildModelSelect();
+  el.apiKey.value = store.get("key_"+p, "");
+  el.keyHelp.textContent = cfg.help;
+  if (p === "openrouter") refreshFreeModels();
+  updateDot();
+}
+function saveSettings(){
+  const p = el.provider.value;
+  store.set("provider", p);
+  store.set("model_"+p, el.modelSel.value === "__custom" ? el.model.value.trim() : el.modelSel.value);
+  store.set("remember", el.remember.checked);
+  if (el.remember.checked) store.set("key_"+p, el.apiKey.value.trim());
+  else Object.keys(PROVIDERS).forEach(k => store.del("key_"+k));
+  updateDot();
+}
+function updateDot(){ el.dot.classList.toggle("ok", !!el.apiKey.value.trim()); }
+
+el.remember.checked = store.get("remember", true);
+el.provider.value = store.get("provider", "openrouter");
+loadProvider();
+el.provider.onchange = () => { store.set("provider", el.provider.value); loadProvider(); };
+el.apiKey.oninput = saveSettings;
+el.modelSel.onchange = () => {
+  el.model.style.display = el.modelSel.value === "__custom" ? "block" : "none";
+  if (el.modelSel.value === "__custom") el.model.focus();
+  // picking a free OpenRouter model switches to the free news source and turns off paid web search
+  if (isFreeModel()){ el.source.value = "free"; store.set("source","free"); el.webAsk.checked = false; }
+  saveSettings(); updateNotes();
+};
+el.model.oninput = saveSettings;
+el.remember.onchange = saveSettings;
+el.source.value = store.get("source", isFreeModel() ? "free" : "web");
+el.source.onchange = () => { store.set("source", el.source.value); if (el.source.value === "free" && el.provider.value === "openrouter") el.webAsk.checked = false; updateNotes(); };
+updateNotes();
+if (isFreeModel() || (el.source.value === "free" && el.provider.value === "openrouter")) el.webAsk.checked = false;
+el.range.value = store.get("range", el.range.value);
+el.lang.value = store.get("lang", "English");
+el.mode.value = store.get("mode", "each");
+el.focus.value = store.get("focus", "");
+[["range",el.range],["lang",el.lang],["mode",el.mode],["focus",el.focus]].forEach(([k,e]) => e.onchange = () => store.set(k, e.value));
+
+el.toggleSide.onclick = () => el.side.classList.toggle("open");
+if (!el.apiKey.value && window.innerWidth <= 820) el.side.classList.add("open");
+
+/* ---------- countries ---------- */
+function renderChips(){
+  el.chips.innerHTML = "";
+  countries.forEach((c,i) => {
+    const s = document.createElement("span"); s.className="chip"; s.textContent = c;
+    const x = document.createElement("button"); x.textContent="×"; x.title="Remove";
+    x.onclick = () => { countries.splice(i,1); store.set("countries", countries); renderChips(); };
+    s.appendChild(x); el.chips.appendChild(s);
+  });
+}
+function addCountry(name){
+  name = (name||"").trim();
+  if (!name) return;
+  const match = COUNTRIES.find(c => c.toLowerCase() === name.toLowerCase());
+  name = match || name.replace(/\b\w/g, m => m.toUpperCase());
+  if (!countries.some(c => c.toLowerCase() === name.toLowerCase())) countries.push(name);
+  store.set("countries", countries); renderChips(); el.countryInput.value = "";
+}
+$("addCountry").onclick = () => addCountry(el.countryInput.value);
+el.countryInput.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); addCountry(el.countryInput.value); } };
+renderChips();
+
+/* ---------- markdown (small, safe) ---------- */
+function esc(s){ return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function inline(s){
+  s = esc(s);
+  s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/(^|[^*])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>");
+  return s;
+}
+function md(text){
+  const lines = text.replace(/\r/g,"").split("\n");
+  let html = "", list = null, para = [];
+  const flushP = () => { if (para.length){ html += "<p>"+para.map(inline).join("<br>")+"</p>"; para=[]; } };
+  const flushL = () => { if (list){ html += "</"+list+">"; list=null; } };
+  for (const raw of lines){
+    const line = raw.trimEnd();
+    let m;
+    if (!line.trim()){ flushP(); flushL(); continue; }
+    if ((m = line.match(/^(#{1,4})\s+(.*)/))){ flushP(); flushL(); const n=Math.min(m[1].length+1,4); html += `<h${n}>${inline(m[2])}</h${n}>`; continue; }
+    if (/^(-{3,}|\*{3,})$/.test(line.trim())){ flushP(); flushL(); html += "<hr style='border:none;border-top:1px solid var(--line)'>"; continue; }
+    if ((m = line.match(/^\s*[-*•]\s+(.*)/))){ flushP(); if (list!=="ul"){ flushL(); html+="<ul>"; list="ul"; } html += "<li>"+inline(m[1])+"</li>"; continue; }
+    if ((m = line.match(/^\s*\d+[.)]\s+(.*)/))){ flushP(); if (list!=="ol"){ flushL(); html+="<ol>"; list="ol"; } html += "<li>"+inline(m[1])+"</li>"; continue; }
+    flushL(); para.push(line);
+  }
+  flushP(); flushL();
+  return html;
+}
+
+/* ---------- chat rendering ---------- */
+function clearEmpty(){ const e = $("empty"); if (e) e.remove(); }
+function addMsg(kind, label, text){
+  clearEmpty();
+  const d = document.createElement("div"); d.className = "msg " + kind;
+  const who = document.createElement("div"); who.className = "who";
+  const l = document.createElement("span"); l.textContent = label; who.appendChild(l);
+  d.appendChild(who);
+  const body = document.createElement("div"); body.className = "body";
+  d.appendChild(body);
+  if (text != null) body.innerHTML = kind === "user" ? esc(text).replace(/\n/g,"<br>") : md(text);
+  el.chat.appendChild(d); el.chat.scrollTop = el.chat.scrollHeight;
+  return { d, who, body };
+}
+function finishAi(m, text, sources){
+  m.body.innerHTML = md(text || "(empty answer)");
+  if (sources && sources.length){
+    const seen = new Set(), uniq = sources.filter(s => s.url && !seen.has(s.url) && seen.add(s.url));
+    if (uniq.length){
+      const det = document.createElement("details"); det.className = "sources";
+      det.innerHTML = `<summary>Sources (${uniq.length})</summary><ol>` +
+        uniq.slice(0,25).map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title || hostOf(s.url))}</a></li>`).join("") + "</ol>";
+      m.d.appendChild(det);
+    }
+  }
+  const cp = document.createElement("button"); cp.className = "copy"; cp.textContent = "Copy";
+  cp.onclick = async () => { try { await navigator.clipboard.writeText(text); cp.textContent = "Copied ✓"; } catch { cp.textContent = "Copy failed"; } setTimeout(()=>cp.textContent="Copy",1500); };
+  m.who.appendChild(cp);
+  el.chat.scrollTop = el.chat.scrollHeight;
+}
+function hostOf(u){ try { return new URL(u).hostname.replace(/^www\./,""); } catch { return u; } }
+function loading(m, txt){ m.body.innerHTML = `<span class="spinner"></span>${esc(txt)}`; }
+
+/* ---------- prompts ---------- */
+function today(){ return new Date().toLocaleDateString("en-GB",{weekday:"long",year:"numeric",month:"long",day:"numeric"}); }
+function systemPrompt(){
+  return `You are a careful news analyst. Today is ${today()}. ` +
+    `When you have a web search tool, use it for current information. When you are given headlines, rely on them and say when something isn't covered. ` +
+    `Only report things you found in sources; never invent events, numbers or quotes. ` +
+    `If sources disagree, say so. Be neutral and factual. Write in ${el.lang.value}. ` +
+    `Use Markdown: short headings, bullet points, bold for key names. Put a source link [like this](url) after each important point.`;
+}
+function newsPrompt(list){
+  const focus = el.focus.value.trim();
+  const range = el.range.value;
+  const what = list.length === 1 ? list[0] : list.join(", ");
+  return `Search the web for the most important news about ${what} from ${range} (today is ${today()}).` +
+    (focus ? ` Focus especially on: ${focus}.` : "") +
+    (list.length > 1
+      ? ` Write one combined briefing: a section per country (with a flag emoji), then a short "Connections" section about links between them, if any.`
+      : ` Structure: a 2–3 sentence overview, then "Top stories" (5–8 bullets, most important first, each with what happened and why it matters), then "Also notable" (a few short bullets).`) +
+    ` Check several different news sources. Mention the date of each story when you can.`;
+}
+
+/* ---------- free headlines: tries several free sources until one works ---------- */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const DAYS = { "the last 24 hours":1, "the last 3 days":3, "the last 7 days":7 };
+let lastSource = "";
+
+async function getText(url, ms = 15000){
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: ctl.signal });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return await r.text();
+  } finally { clearTimeout(t); }
+}
+function cleanTitle(t){ return (t||"").replace(/\s+/g," ").trim(); }
+function dedupe(items){
+  const seen = new Set();
+  return items.filter(a => { const k = a.title.toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,50);
+    if (!a.title || seen.has(k)) return false; seen.add(k); return true; });
+}
+function isoDate(d){ const x = new Date(d); return isNaN(x) ? "" : x.toISOString().slice(0,10); }
+
+// Google News RSS search: great coverage, but browsers need a CORS relay to read it
+function googleNewsUrl(country){
+  const focus = el.focus.value.trim();
+  const terms = focus ? focus.split(/[,;]+/).map(s=>s.trim()).filter(Boolean) : [];
+  const q = `"${country}"` + (terms.length ? " (" + terms.join(" OR ") + ")" : "") + ` when:${DAYS[el.range.value]||3}d`;
+  return "https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q=" + encodeURIComponent(q);
+}
+function parseRss(xml){
+  const doc = new DOMParser().parseFromString(xml, "text/xml");
+  const items = [...doc.querySelectorAll("item")].map(it => {
+    const src = it.querySelector("source");
+    let title = cleanTitle(it.querySelector("title")?.textContent);
+    const domain = src ? cleanTitle(src.textContent) : "";
+    if (domain && title.endsWith(" - " + domain)) title = title.slice(0, -(domain.length + 3));
+    return { title, url: cleanTitle(it.querySelector("link")?.textContent), domain: domain || "news",
+             date: isoDate(it.querySelector("pubDate")?.textContent) };
+  });
+  if (!items.length && !doc.querySelector("channel")) throw new Error("not RSS");
+  return items;
+}
+const SOURCES = [
+  { name:"Google News (via rss2json)", get: async c => {
+      const d = JSON.parse(await getText("https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(googleNewsUrl(c))));
+      if (d.status !== "ok") throw new Error(d.message || "rss2json error");
+      return d.items.map(i => { let title = cleanTitle(i.title), m = title.match(/^(.*) - ([^-]+)$/);
+        return { title: m ? m[1] : title, domain: m ? m[2].trim() : (i.author||"news"), url: i.link, date: isoDate(i.pubDate.replace(" ","T")+"Z") }; });
+  }},
+  { name:"Google News (via allorigins)", get: async c => parseRss(await getText("https://api.allorigins.win/raw?url=" + encodeURIComponent(googleNewsUrl(c)))) },
+  { name:"Google News (via corsproxy)",  get: async c => parseRss(await getText("https://corsproxy.io/?url=" + encodeURIComponent(googleNewsUrl(c)))) },
+  { name:"Google News (via codetabs)",   get: async c => parseRss(await getText("https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(googleNewsUrl(c)))) },
+  { name:"GDELT", get: async c => {
+      const span = (DAYS[el.range.value]||3) + "d";
+      const d = JSON.parse(await getText("https://api.gdeltproject.org/api/v2/doc/doc?format=json&mode=artlist&sort=hybridrel&maxrecords=60&timespan=" + span +
+        "&query=" + encodeURIComponent(`"${c}" sourcelang:english`)));
+      return (d.articles||[]).map(a => ({ title: cleanTitle(a.title), url: a.url, domain: a.domain,
+        date: (a.seendate||"").replace(/^(\d{4})(\d{2})(\d{2}).*/, "$1-$2-$3") }));
+  }},
+  { name:"Wikipedia Current Events", get: async c => {   // very reliable, fewer stories
+      const out = [], n = DAYS[el.range.value] || 3;
+      const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      for (let i = 0; i <= n; i++){
+        const d = new Date(Date.now() - i*864e5);
+        const page = `Portal:Current_events/${d.getUTCFullYear()}_${months[d.getUTCMonth()]}_${d.getUTCDate()}`;
+        try {
+          const j = JSON.parse(await getText("https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=text&origin=*&page=" + encodeURIComponent(page)));
+          if (!j.parse) continue;
+          const doc = new DOMParser().parseFromString(j.parse.text["*"], "text/html");
+          doc.querySelectorAll("li").forEach(li => {
+            if (li.querySelector("ul")) return;                 // only leaf items (actual events)
+            const t = cleanTitle(li.textContent);
+            if (!t.toLowerCase().includes(c.toLowerCase()) || t.length < 40) return;
+            const ext = [...li.querySelectorAll("a")].find(a => /^https?:/.test(a.getAttribute("href")||""));
+            out.push({ title: t.replace(/\s*\([^)]*\)\s*$/, ""), url: ext ? ext.href : "https://en.wikipedia.org/wiki/" + page,
+                       domain: ext ? hostOf(ext.href) : "wikipedia.org", date: d.toISOString().slice(0,10) });
+          });
+        } catch {}
+      }
+      return out;
+  }}
+];
+let preferred = 0;   // remember which source worked last time
+async function freeHeadlines(country, onTry){
+  const order = [...SOURCES.keys()]; order.unshift(...order.splice(preferred, 1));
+  const errors = [];
+  for (const i of order){
+    const s = SOURCES[i];
+    onTry && onTry(s.name);
+    try {
+      const items = dedupe(await s.get(country)).slice(0, 40);
+      if (items.length){ preferred = i; lastSource = s.name; return items; }
+      errors.push(s.name + ": no results");
+    } catch (e){ errors.push(s.name + ": " + (e.name === "AbortError" ? "timed out" : e.message)); }
+  }
+  throw new Error("Couldn't get free headlines for " + country + " from any source.\n• " + errors.join("\n• ") +
+    "\n\nIf every source failed, your browser or app is probably blocking internet access for this file. Open it in Chrome, Safari or Edge directly (not inside a file viewer), or switch News source to AI web search.");
+}
+function headlineList(country, items){
+  return `Recent news headlines about ${country} from ${el.range.value} (today is ${today()}), collected from many news sites:\n\n` +
+    items.map((a,i) => `${i+1}. [${a.date}] ${a.title} (${a.domain}) ${a.url}`).join("\n");
+}
+function headlinesPrompt(country, items){
+  const focus = el.focus.value.trim();
+  return headlineList(country, items) +
+    `\n\nUsing ONLY these headlines, write a news summary for ${country}` + (focus ? ` focusing on ${focus}` : "") +
+    `. Group headlines about the same story together. Structure: a 2–3 sentence overview, then "Top stories" (5–8 bullets, most important first), then "Also notable". ` +
+    `Put the source link [site](url) after each point. You only have headlines, so don't invent details that aren't in them; ignore headlines that aren't really about ${country}.`;
+}
+
+/* ---------- API calls ---------- */
+async function callAI(messages, useWeb){
+  const p = el.provider.value;
+  const key = el.apiKey.value.trim();
+  const model = currentModel();
+  if (!key) throw new Error("Add your API key in Setup first.");
+  const sys = systemPrompt();
+  if (p === "openrouter") return callOpenRouter(key, model, sys, messages, useWeb);
+  if (p === "anthropic")  return callAnthropic(key, model, sys, messages, useWeb);
+  if (p === "openai")     return callOpenAI(key, model, sys, messages, useWeb);
+  if (p === "gemini")     return callGemini(key, model, sys, messages, useWeb);
+}
+
+async function jsonFetch(url, opts){
+  let res;
+  try { res = await fetch(url, opts); }
+  catch (e) { throw new Error("Network error — check your connection. (If you opened this file inside an app, open it in a normal browser instead.) " + e.message); }
+  const txt = await res.text();
+  let data; try { data = JSON.parse(txt); } catch { data = null; }
+  if (!res.ok){
+    const msg = data && (data.error?.message || data.error?.error?.message || data.message || (typeof data.error === "string" ? data.error : null));
+    throw new Error(`${res.status}: ${msg || txt.slice(0,300)}`);
+  }
+  return data;
+}
+
+async function callOpenRouter(key, model, sys, messages, useWeb){
+  const body = { model, messages: [{role:"system", content:sys}, ...messages] };
+  if (useWeb) body.plugins = [{ id:"web", max_results: 8 }];
+  const data = await jsonFetch("https://openrouter.ai/api/v1/chat/completions", {
+    method:"POST",
+    headers:{ "Authorization":"Bearer "+key, "Content-Type":"application/json", "X-Title":"World News AI" },
+    body: JSON.stringify(body)
+  });
+  const msg = data.choices?.[0]?.message || {};
+  const sources = (msg.annotations || []).filter(a => a.type === "url_citation")
+    .map(a => ({ url:a.url_citation?.url, title:a.url_citation?.title }));
+  return { text: msg.content || "", sources };
+}
+
+async function callAnthropic(key, model, sys, messages, useWeb){
+  const msgs = messages.map(m => ({ role:m.role, content:m.content }));
+  const headers = { "x-api-key":key, "anthropic-version":"2023-06-01",
+    "anthropic-dangerous-direct-browser-access":"true", "Content-Type":"application/json" };
+  let text = "", sources = [];
+  for (let i = 0; i < 4; i++){
+    const body = { model, max_tokens: 4096, system: sys, messages: msgs };
+    if (useWeb) body.tools = [{ type:"web_search_20250305", name:"web_search", max_uses: 6 }];
+    const data = await jsonFetch("https://api.anthropic.com/v1/messages", { method:"POST", headers, body: JSON.stringify(body) });
+    for (const b of data.content || []){
+      if (b.type === "text"){ text += b.text; (b.citations||[]).forEach(c => sources.push({ url:c.url, title:c.title })); }
+      if (b.type === "web_search_tool_result" && Array.isArray(b.content)) b.content.forEach(r => r.url && sources.push({ url:r.url, title:r.title }));
+    }
+    if (data.stop_reason !== "pause_turn") break;
+    msgs.push({ role:"assistant", content: data.content });   // let it continue a long search
+  }
+  return { text, sources };
+}
+
+async function callOpenAI(key, model, sys, messages, useWeb){
+  const body = { model, instructions: sys, input: messages.map(m => ({ role:m.role, content:m.content })) };
+  if (useWeb) body.tools = [{ type:"web_search" }];
+  const data = await jsonFetch("https://api.openai.com/v1/responses", {
+    method:"POST", headers:{ "Authorization":"Bearer "+key, "Content-Type":"application/json" }, body: JSON.stringify(body)
+  });
+  let text = "", sources = [];
+  for (const item of data.output || []){
+    if (item.type !== "message") continue;
+    for (const c of item.content || []){
+      if (c.type === "output_text"){
+        text += c.text;
+        (c.annotations||[]).forEach(a => a.type === "url_citation" && sources.push({ url:a.url, title:a.title }));
+      }
+    }
+  }
+  return { text, sources };
+}
+
+async function callGemini(key, model, sys, messages, useWeb){
+  const body = {
+    systemInstruction: { parts:[{ text: sys }] },
+    contents: messages.map(m => ({ role: m.role === "assistant" ? "model" : "user", parts:[{ text:m.content }] }))
+  };
+  if (useWeb) body.tools = [{ google_search: {} }];
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+  const data = await jsonFetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) });
+  const cand = data.candidates?.[0];
+  if (!cand) throw new Error("Gemini returned no answer" + (data.promptFeedback?.blockReason ? " (blocked: "+data.promptFeedback.blockReason+")" : "."));
+  const text = (cand.content?.parts || []).map(p => p.text || "").join("");
+  const sources = (cand.groundingMetadata?.groundingChunks || []).map(c => ({ url:c.web?.uri, title:c.web?.title }));
+  return { text, sources };
+}
+
+/* ---------- actions ---------- */
+function setBusy(b){ busy = b; el.runBtn.disabled = b; el.askBtn.disabled = b; }
+
+async function runNews(){
+  if (busy) return;
+  if (!countries.length){ addMsg("ai err", "Error", "Add at least one country first."); return; }
+  if (!el.apiKey.value.trim()){ el.side.classList.add("open"); el.apiKey.focus(); addMsg("ai err","Error","Add your API key in Setup first."); return; }
+  el.side.classList.remove("open");
+  setBusy(true);
+  if (el.source.value === "free"){ await runFreeNews(); trimHistory(); setBusy(false); return; }
+  const groups = el.mode.value === "combined" ? [countries.slice()] : countries.map(c => [c]);
+  for (const g of groups){
+    const label = g.join(", ");
+    const prompt = newsPrompt(g);
+    addMsg("user", "You", `📰 News summary: ${label} (${el.range.value})`);
+    const m = addMsg("ai", PROVIDERS[el.provider.value].name + " · " + label, null);
+    loading(m, `Searching news for ${label}…`);
+    try {
+      const r = await callAI([...history, { role:"user", content:prompt }], true);
+      history.push({ role:"user", content:prompt }, { role:"assistant", content:r.text });
+      finishAi(m, r.text, r.sources);
+    } catch (e){
+      m.d.classList.add("err"); m.body.textContent = "⚠ " + e.message;
+    }
+  }
+  trimHistory();
+  setBusy(false);
+}
+
+async function runFreeNews(){
+  const provider = PROVIDERS[el.provider.value].name;
+  const tag = `(${el.range.value}, free headlines)`;
+  if (el.mode.value === "combined"){
+    const label = countries.join(", ");
+    addMsg("user", "You", `📰 News summary: ${label} ${tag}`);
+    const m = addMsg("ai", provider + " · " + label, null);
+    const all = [];
+    for (const c of countries){
+      loading(m, `Downloading headlines for ${c}… (${all.length + 1}/${countries.length})`);
+      try { const items = await freeHeadlines(c, n => loading(m, `Getting headlines for ${c} from ${n}… (${all.length + 1}/${countries.length})`)); if (items.length) all.push({ c, items: items.slice(0, 25) }); }
+      catch (e){ /* skip this country, keep the others */ }
+    }
+    if (!all.length){ finishAi(m, "No headlines found. Try a longer time range, remove the focus, or switch News source to AI web search.", []); return; }
+    const prompt = all.map(x => headlineList(x.c, x.items)).join("\n\n---\n\n") +
+      `\n\nUsing ONLY these headlines, write one combined briefing: a section per country (with a flag emoji), each with 4–6 bullets, most important first, then a short "Connections" section if stories link the countries. Put the source link [site](url) after each point. Don't invent details beyond the headlines.`;
+    await summarizeHeadlines(m, all.map(x => x.c).join(", "), prompt, all.flatMap(x => x.items));
+    return;
+  }
+  for (const c of countries){
+    addMsg("user", "You", `📰 News summary: ${c} ${tag}`);
+    const m = addMsg("ai", provider + " · " + c, null);
+    loading(m, `Downloading headlines for ${c}…`);
+    let items;
+    try { items = await freeHeadlines(c, n => loading(m, `Getting headlines for ${c} from ${n}…`)); }
+    catch (e){ m.d.classList.add("err"); m.body.style.whiteSpace = "pre-wrap"; m.body.textContent = "⚠ " + e.message; continue; }
+    if (!items.length){ finishAi(m, `No English headlines found for **${c}** in ${el.range.value}. Try a longer time range or remove the focus.`, []); continue; }
+    await summarizeHeadlines(m, c, headlinesPrompt(c, items), items);
+  }
+}
+async function summarizeHeadlines(m, label, prompt, items){
+  loading(m, `Summarizing ${items.length} headlines for ${label} (from ${lastSource})…`);
+  try {
+    const r = await callAI([...history, { role:"user", content:prompt }], false);
+    history.push({ role:"user", content:prompt }, { role:"assistant", content:r.text });
+    finishAi(m, r.text + `\n\n*Headlines from ${lastSource}.*`, items.map(a => ({ url:a.url, title:a.title })));
+  } catch (e){ m.d.classList.add("err"); m.body.textContent = "⚠ " + e.message; }
+}
+
+async function ask(){
+  const text = el.q.value.trim();
+  if (!text || busy) return;
+  el.q.value = ""; autoGrow();
+  addMsg("user", "You", text);
+  const m = addMsg("ai", PROVIDERS[el.provider.value].name, null);
+  loading(m, el.webAsk.checked ? "Searching and thinking…" : "Thinking…");
+  setBusy(true);
+  try {
+    const r = await callAI([...history, { role:"user", content:text }], el.webAsk.checked);
+    history.push({ role:"user", content:text }, { role:"assistant", content:r.text });
+    trimHistory();
+    finishAi(m, r.text, r.sources);
+  } catch (e){
+    m.d.classList.add("err"); m.body.textContent = "⚠ " + e.message;
+  }
+  setBusy(false);
+}
+
+function trimHistory(){
+  // keep the conversation from getting huge (roughly last 30 messages / ~120k chars)
+  while (history.length > 30 || history.reduce((n,m)=>n+m.content.length,0) > 120000) history.splice(0,2);
+}
+
+function autoGrow(){ el.q.style.height = "auto"; el.q.style.height = Math.min(el.q.scrollHeight,160)+"px"; }
+
+el.runBtn.onclick = runNews;
+// Connection test: shows exactly what this browser lets the page reach
+$("testBtn").onclick = async () => {
+  if (busy) return;
+  const m = addMsg("ai", "Connection test", null); loading(m, "Testing…"); setBusy(true);
+  const checks = [
+    ["Internet (Wikipedia)", "https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&format=json&origin=*"],
+    ["News relay: rss2json", "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent("https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en")],
+    ["News relay: allorigins", "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en")],
+    ["News: GDELT", "https://api.gdeltproject.org/api/v2/doc/doc?format=json&mode=artlist&maxrecords=1&timespan=1d&query=news"],
+    ["AI: OpenRouter", "https://openrouter.ai/api/v1/models"],
+  ];
+  const lines = [];
+  for (const [name, url] of checks){
+    try { await getText(url, 12000); lines.push("✅ " + name); }
+    catch (e){ lines.push("❌ " + name + " — " + (e.name === "AbortError" ? "timed out" : e.message)); }
+  }
+  const allFail = lines.every(l => l.startsWith("❌"));
+  finishAi(m, lines.map(l => "- " + l).join("\n") + "\n\n" + (allFail
+    ? "**Nothing could be reached**, so the app or viewer that opened this file is blocking internet access. Open the file in Chrome, Safari or Edge directly, or host it (for example on GitHub Pages) and open the link."
+    : "Page: " + location.protocol + "//" + (location.host || "(local file)")), []);
+  setBusy(false);
+};
+el.askBtn.onclick = ask;
+el.q.oninput = autoGrow;
+el.q.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); ask(); } };
+el.clearBtn.onclick = () => {
+  if (busy) return;
+  history = [];
+  el.chat.innerHTML = '<div class="empty" id="empty"><p style="font-size:38px;margin:0">🌍</p><p><b>Chat cleared.</b></p><p>Summarize the news again or ask a question.</p></div>';
+};
+})();
+</script>
+</body>
+</html>
